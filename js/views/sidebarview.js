@@ -77,7 +77,7 @@
 		},
 
 		events: {
-			'click @ui.trigger': 'open',
+			'click @ui.trigger': 'toggle',
 			'click @ui.sidebar a.close': 'close',
 		},
 
@@ -123,6 +123,14 @@
 			}
 
 			this._enabled = false;
+		},
+
+		toggle: function() {
+			if (this.getUI('sidebar').hasClass('disappear')) {
+				this.open();
+			} else {
+				this.close();
+			}
 		},
 
 		open: function() {
