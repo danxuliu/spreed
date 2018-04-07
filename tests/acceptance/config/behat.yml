@@ -1,0 +1,79 @@
+#imports:
+  #- /nextcloud/tests/acceptance/config/behat.yml
+
+#default:
+  #autoload:
+    #'': /nextcloud/apps/spreed/tests/acceptance/features/bootstrap
+  #suites:
+    #default:
+      #contexts: &baseContexts
+        #- ActorContext
+        #- NextcloudTestServerContext
+
+        #- AppNavigationContext
+        #- CommentsAppContext
+        #- ContactsMenuContext
+        #- FeatureContext
+        #- FileListContext
+        #- FilesAppContext
+        #- FilesSharingAppContext
+        #- LoginPageContext
+        #- NotificationContext
+        #- SettingsContext
+        #- SettingsMenuContext
+        #- ThemingAppContext
+        #- UsersSettingsContext
+    #talk:
+      #paths:
+        #- /nextcloud/apps/spreed/tests/acceptance/features
+      #contexts:
+        #<<: *baseContexts
+        #- LalalaContext
+
+default:
+  autoload:
+    #- '': /nextcloud/tests/acceptance/features/botstrap
+    #'': /nextcloud/apps/spreed/tests/acceptance/features/bootstrap
+    '': %paths.base%/../features/bootstrap
+  suites:
+    default:
+      paths:
+        #- /nextcloud/apps/spreed/tests/acceptance/features
+        - %paths.base%/../features
+      contexts:
+        # Base contexts
+        - ActorContext
+        #- NextcloudTestServerContext:
+            #nextcloudTestServerHelper: NextcloudTestServerLocalApacheHelper
+        - NextcloudTestServerContext
+
+        #- AppNavigationContext
+        #- CommentsAppContext
+        #- ContactsMenuContext
+        - FeatureContext
+        - FileListContext
+        - FilesAppContext
+        #- FilesSharingAppContext
+        - LoginPageContext
+        #- NotificationContext
+        #- SettingsContext
+        #- SettingsMenuContext
+        #- ThemingAppContext
+        #- UsersSettingsContext
+
+        # Talk app contexts
+        - ChatContext
+        - ParticipantListContext
+        - RoomInfoContext
+        - RoomListContext
+        - TalkAppContext
+
+  extensions:
+    Behat\MinkExtension:
+      sessions:
+        default:
+          selenium2: ~
+        John:
+          selenium2: ~
+        Jane:
+          selenium2: ~
