@@ -106,19 +106,7 @@ class RoomShareProvider implements IShareProvider {
 	 * @throws GenericShareException
 	 */
 	public function create(IShare $share) {
-		try {
-			$room = $this->manager->getRoomByToken($share->getSharedWith());
-		} catch (RoomNotFoundException $e) {
-			throw new GenericShareException("Room not found", $this->l->t('Conversation not found'), 404);
-		}
-
-		try {
-			$room->getParticipant($share->getSharedBy());
-		} catch (ParticipantNotFoundException $e) {
-			// If the sharer is not a participant of the room even if the room
-			// exists the error is still "Room not found".
-			throw new GenericShareException("Room not found", $this->l->t('Conversation not found'), 404);
-		}
+		$this->sharerIsInRoomCheck($share);
 
 		$existingShares = $this->getSharesByPath($share->getNode());
 		foreach ($existingShares as $existingShare) {
@@ -141,6 +129,28 @@ class RoomShareProvider implements IShareProvider {
 		$data = $this->getRawShare($shareId);
 
 		return $this->createShareObject($data);
+	}
+
+	/**
+	 * Ensures that the sharer is in the room, throwing an exception if not.
+	 *
+	 * @param IShare $share
+	 * @throws GenericShareException
+	 */
+	private function sharerIsInRoomCheck(IShare $share) {
+		try {
+			$room = $this->manager->getRoomByToken($share->getSharedWith());
+		} catch (RoomNotFoundException $e) {
+			throw new GenericShareException("Room not found", $this->l->t('Conversation not found'), 404);
+		}
+
+		try {
+			$room->getParticipant($share->getSharedBy());
+		} catch (ParticipantNotFoundException $e) {
+			// If the sharer is not a participant of the room even if the room
+			// exists the error is still "Room not found".
+			throw new GenericShareException("Room not found", $this->l->t('Conversation not found'), 404);
+		}
 	}
 
 	/**
