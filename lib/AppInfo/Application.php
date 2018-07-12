@@ -66,6 +66,7 @@ class Application extends App {
 		$this->registerRoomInvitationHook($dispatcher);
 		$this->registerCallNotificationHook($dispatcher);
 		$this->registerChatHooks($dispatcher);
+		$this->registerPublicShareAuthHooks($dispatcher);
 	}
 
 	protected function registerNotifier(IServerContainer $server) {
@@ -272,5 +273,20 @@ class Application extends App {
 			$chatManager->deleteMessages((string) $room->getId());
 		};
 		$dispatcher->addListener(Room::class . '::postDeleteRoom', $listener);
+	}
+
+	protected function registerPublicShareAuthHooks(EventDispatcherInterface $dispatcher) {
+		$listener = function(GenericEvent $event) {
+			/** @var Room $room */
+			$room = $event->getSubject();
+
+			/** @var \OCA\Spreed\PublicShareAuth\Room $publicShareAuthRoom */
+			$publicShareAuthRoom = $this->getContainer()->query(\OCA\Spreed\PublicShareAuth\Room::class);
+			$publicShareAuthRoom->destroyRoomOnParticipantLeave($room);
+		};
+		$dispatcher->addListener(Room::class . '::postRemoveUser', $listener);
+		$dispatcher->addListener(Room::class . '::postRemoveBySession', $listener);
+		$dispatcher->addListener(Room::class . '::postUserDisconnectRoom', $listener);
+		$dispatcher->addListener(Room::class . '::postCleanGuests', $listener);
 	}
 }
