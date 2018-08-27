@@ -15,6 +15,8 @@
 
 		_userLocalTemplate: '<span class="mention-user {{#if isCurrentUser}}current-user{{/if}}" data-user="{{id}}">@{{name}}</span>',
 
+		_filePreviewTemplate: '<div class="filePreview" data-file-id="{{id}}"></div>',
+
 		_unknownTemplate: '<strong>{{name}}</strong>',
 		_unknownLinkTemplate: '<a href="{{link}}" class="external" target="_blank" rel="noopener noreferrer"><strong>{{name}}</strong></a>',
 
@@ -28,6 +30,9 @@
 				regex = /\{([a-z0-9-]+)\}/gi,
 				matches = subject.match(regex);
 
+			var filesContainer = '<div class="filesPreviewContainer">';
+			var filesAdded = false;
+
 			_.each(matches, function(parameter) {
 				parameter = parameter.substring(1, parameter.length - 1);
 				if (!parameters.hasOwnProperty(parameter) || !parameters[parameter]) {
@@ -38,7 +43,26 @@
 
 				var parsed = self.parseParameter(parameters[parameter]);
 				subject = subject.replace('{' + parameter + '}', parsed);
+
+				// 
+				if (parameters[parameter].type === 'file' && parameters[parameter].id != '') {
+					filesAdded = true;
+
+					if (!self.filePreviewTemplate) {
+						self.filePreviewTemplate = Handlebars.compile(self._filePreviewTemplate);
+					}
+					filesContainer += self.filePreviewTemplate(parameters[parameter]);
+				}
 			});
+
+			filesContainer += '</div>';
+
+			if (filesAdded) {
+				// TODO probably add it after instead of before to fit the
+				// (future) look of webpage previews; needs more CSS work too
+				// anyway
+				subject = filesContainer + subject;
+			}
 
 			return subject;
 		},

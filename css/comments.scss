@@ -312,3 +312,7 @@ body:not(#body-public) #commentsTabView .comment:not(.newCommentRow) .message .m
 	left: -12px;
 	top: 140%;
 }
+
+#commentsTabView .comment .message .filePreview {
+	display: inline-block;
+}

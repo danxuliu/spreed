@@ -529,10 +529,16 @@
 		},
 
 		_postRenderMessage: function($el) {
+			var self = this;
+
 			// Contacts menu is not shown in public view.
 			if (!OC.getCurrentUser().uid) {
 				return;
 			}
+
+			$el.find('.filePreview').each(function() {
+				self._renderFilePreview($(this));
+			});
 
 			$el.find('.mention-user').each(function() {
 				var $this = $(this);
@@ -542,6 +548,56 @@
 					$this.contactsMenu(user, 0, $this);
 				}
 			});
+		},
+
+		_renderFilePreview: function($filePreview) {
+			// TODO use Math.ceil(128 * window.devicePixelRatio) instead?
+			var previewSize = 128;
+
+			var url = OC.generateUrl(
+				'/core/preview?fileId={fileId}&x={width}&y={height}&forceIcon=true',
+				{
+					fileId: $filePreview.data('file-id'),
+					width: previewSize,
+					height: previewSize
+				});
+
+			var img = new Image();
+
+			// If the new image loads successfully set it.
+			img.onload = function() {
+				$filePreview.removeClass('icon-loading')
+			};
+
+			img.onerror = function() {
+				// TODO show file icon instead and remove loading icon when done
+				// TODO how to get the icon without having to make a request to
+				// get the mimetype before getting the icon? Make the preview
+				// endpoint return the icon when there is no preview (apparently
+				// that should work with the forceIcon parameter... but it does
+				// not?
+				// TODO there is no file id for guests, how to show an icon in
+				// that case (note that right now the filePreview element is not
+				// even created by the rich object parser)?
+
+				var filesClient = OC.Files.getClient();
+				// TODO how to get the mime type of a file from its id?
+				
+// 				img.src = OC.MimeType.getIconUrl(mimetype);
+
+				//TODO what to do if the icon also fails to load? Maybe do not
+				// show neither the preview nor the icon until they are
+				// successfully loaded instead of showing the loading icon?
+			};
+
+			$filePreview.addClass('icon-loading');
+
+			img.width = previewSize;
+			img.height = previewSize;
+			img.src = url;
+
+			// TODO append the image only when successfully loaded?
+			$filePreview.append(img);
 		},
 
 		_onTypeComment: function(ev) {
