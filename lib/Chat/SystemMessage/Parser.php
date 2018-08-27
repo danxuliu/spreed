@@ -197,11 +197,12 @@ class Parser {
 	protected function getFileFromShare(string $shareId): array {
 		$share = $this->shareProvider->getShareById($shareId);
 		$node = $share->getNode();
-
+		$fileId = '-1';
 
 		if ($this->userSession->isLoggedIn()) {
+			$fileId = $node->getId();
 			$url = $this->url->linkToRouteAbsolute('files.viewcontroller.showFile', [
-				'fileid' => $node->getId(),
+				'fileid' => $fileId,
 			]);
 		} else {
 			$url = $this->url->linkToRouteAbsolute('files_sharing.sharecontroller.showShare', [
@@ -211,7 +212,7 @@ class Parser {
 
 		return [
 			'type' => 'file',
-			'id' => $shareId,
+			'id' => $fileId,
 			'name' => $node->getName(),
 			'link' => $url,
 		];
