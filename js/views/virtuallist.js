@@ -211,6 +211,11 @@
 			return this._lastKnownScrollPosition;
 		},
 
+		isScrollable: function() {
+			// TODO height, or height with padding, or height with padding and borders?
+			return this._getElementHeight(this._$wrapperBackground) > this._getElementHeight(this._$container);
+		},
+
 		prependElementStart: function() {
 			this._prependedElementsBuffer = document.createDocumentFragment();
 
@@ -830,7 +835,7 @@
 
 			// If the container is scrollable set its "tabindex" attribute so it
 			// is included in the sequential keyboard navigation.
-			if (this._getElementHeight(this._$wrapperBackground) > this._getElementHeight(this._$container)) {
+			if (this.isScrollable()) {
 				this._$container.attr('tabindex', 0);
 			} else {
 				this._$container.removeAttr('tabindex');
