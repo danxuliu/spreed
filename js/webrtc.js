@@ -450,6 +450,8 @@ var spreedPeerConnectionTable = [];
 				return;
 			}
 
+			OC.Notification.show(OC.Util.formatDate(Date.now(), 'LTS') + ': Force reconnect', { type: 'error' });
+
 			// For now assume the connection to the MCU is interrupted on ICE
 			// failures and force a reconnection of all streams.
 			forceReconnect(signaling);
@@ -495,14 +497,23 @@ var spreedPeerConnectionTable = [];
 				delete OCA.SpreedMe.videos.videoViews[id];
 			},
 			addPeer: function(peer) {
+				var shortPeerId = peer.id.substring(0, 15);
+
 				var signaling = OCA.SpreedMe.app.signaling;
 				if (peer.id === webrtc.connection.getSessionid()) {
 					console.log("Not adding video for own peer", peer);
 					OCA.SpreedMe.videos.startSendingNick(peer);
 					peer.pc.addEventListener('iceconnectionstatechange', function () {
 						switch (peer.pc.iceConnectionState) {
+							case 'disconnected':
+								OC.Notification.show(OC.Util.formatDate(Date.now(), 'LTS') + ': Disconnected: [self, ' + shortPeerId + ']', { type: 'error' });
+
+								break;
 							case 'failed':
+								OC.Notification.show(OC.Util.formatDate(Date.now(), 'LTS') + ': Connection failed: [self, ' + shortPeerId + ']', { type: 'error' });
+
 								handleIceFailedWithMcu();
+
 								break;
 						}
 					});
@@ -587,6 +598,8 @@ var spreedPeerConnectionTable = [];
 										}
 									}
 								}, 5000);
+							} else {
+								OC.Notification.show(OC.Util.formatDate(Date.now(), 'LTS') + ': Disconnected: [' + (userId? userId: peer.nick) + ', ' + shortPeerId + ']', { type: 'error' });
 							}
 							break;
 						case 'failed':
@@ -610,6 +623,8 @@ var spreedPeerConnectionTable = [];
 									videoView.setConnectionStatus(OCA.Talk.Views.VideoView.ConnectionStatus.FAILED_NO_RESTART);
 								}
 							} else {
+								OC.Notification.show(OC.Util.formatDate(Date.now(), 'LTS') + ': Connection failed: [' + (userId? userId: peer.nick) + ', ' + shortPeerId + ']', { type: 'error' });
+
 								handleIceFailedWithMcu();
 							}
 							break;
