@@ -383,6 +383,18 @@ return [
 				'id' => '^\d+$',
 			],
 		],
+
+		/**
+		 * Debug
+		 */
+		[
+			'name' => 'Debug#log',
+			'url' => '/api/{apiVersion}/log',
+			'verb' => 'POST',
+			'requirements' => [
+				'apiVersion' => 'v1',
+			],
+		],
 	],
 ];
 
