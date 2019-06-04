@@ -56,6 +56,11 @@
 			} else {
 				settings = {};
 			}
+
+			if (settings.debug) {
+				OCA.Talk.debug.setEnabled(true);
+			}
+		
 			var urls = settings.server;
 			if (urls && urls.length) {
 				return new OCA.Talk.Signaling.Standalone(settings, urls);

@@ -28,8 +28,9 @@
 	/**
 	 * Helper class to log debug messages in Nextcloud log.
 	 *
-	 * Messages are added with "log()" and periodically sent to the server; if a
-	 * message can not be delivered it will be automatically retried until it is
+	 * Messages are added with "log()" and periodically sent to the server (if
+	 * debugging was enabled by calling "setEnabled(true)"); if a message can
+	 * not be delivered it will be automatically retried until it is
 	 * successfully received by the server. Even in case of a retry all the
 	 * messages will be sent exactly in the same order that they were added.
 	 */
@@ -37,9 +38,8 @@
 		this._pendingMessages = [];
 
 		this._isSendingMessages = false;
-		this._sendInterval = window.setInterval(function() {
-			this._sendPendingMessages();
-		}.bind(this), 500);
+
+		this._enabled = false;
 	}
 
 	OCA.Talk.Debug = Debug;
@@ -50,6 +50,26 @@
 		WARN: 2,
 		ERROR: 3,
 		FATAL: 4,
+	};
+
+	/**
+	 * Enables sending the messages to Nextcloud log.
+	 *
+	 * Messages added while debugging was still disabled will be sent once
+	 * enabled.
+	 */
+	OCA.Talk.Debug.prototype.setEnabled = function(enabled) {
+		this._enabled = enabled;
+
+		if (!enabled) {
+			window.clearInterval(this._sendInterval);
+
+			return;
+		}
+
+		this._sendInterval = window.setInterval(function() {
+			this._sendPendingMessages();
+		}.bind(this), 500);
 	};
 
 	/**

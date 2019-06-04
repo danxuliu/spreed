@@ -107,6 +107,7 @@ class Config {
 			'ticket' => $this->getSignalingTicket($userId),
 			'stunservers' => $stun,
 			'turnservers' => $turn,
+			'debug' => true,
 		];
 	}
 
