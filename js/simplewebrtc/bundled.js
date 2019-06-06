@@ -649,6 +649,78 @@ function Peer(options) {
   // automatically. We'll just leave it be for now while this stabalizes.
 
   this.pc.addEventListener('negotiationneeded', this.emit.bind(this, 'negotiationNeeded'));
+  this.pc.addEventListener('icegatheringstatechange', function () {
+    OCA.Talk.debug.log('--------ICE gathering state: ' + this.pc.iceGatheringState);
+  }.bind(this));
+  this.pc.addEventListener('iceconnectionstatechange', function () {
+    switch (this.pc.iceConnectionState) {
+      case 'checking':
+        OCA.Talk.debug.log('--------ICE connecting: ' + OCA.Talk.debug.getShortId(this));
+        break;
+
+      case 'connected':
+      case 'completed':
+        var iceConnectionState = this.pc.iceConnectionState;
+        OCA.Talk.debug.log('--------ICE connection established (' + iceConnectionState + '): ' + OCA.Talk.debug.getShortId(this));
+        this.pc.getStats().then(function (stats) {
+          OCA.Talk.debug.log('--------ICE candidate pairs for ' + OCA.Talk.debug.getShortId(this) + ' in state ' + iceConnectionState);
+
+          var candidateToString = function candidateToString(candidate) {
+            // Firefox uses the non standard "address" property
+            // instead of "ip".
+            var candidateString = candidate.ip ? candidate.ip : candidate.address;
+            candidateString += ':' + candidate.port;
+            candidateString += '/' + candidate.protocol;
+            candidateString += ' (' + candidate.candidateType + ')';
+            return candidateString;
+          };
+
+          var candidatePairToString = function candidatePairToString(candidatePair) {
+            var localCandidate = stats.get(candidatePair.localCandidateId);
+            var remoteCandidate = stats.get(candidatePair.remoteCandidateId);
+            return candidateToString(localCandidate) + ' | ' + candidateToString(remoteCandidate);
+          };
+
+          var candidatePairs = Array.from(stats.values()).filter(function (stat) {
+            return stat.type === 'candidate-pair';
+          });
+          var selectedCandidatePair;
+          candidatePairs.forEach(function (candidatePair) {
+            // "selected" is not standard, but provided by Firefox.
+            // In turn, Firefox does not seem to provide transport
+            // stats, which are the standard way to find the
+            // candidate.
+            if (candidatePair.selected) {
+              selectedCandidatePair = candidatePair;
+            }
+
+            OCA.Talk.debug.log('------------ICE candidate pair for ' + OCA.Talk.debug.getShortId(this) + ': ' + candidatePairToString(candidatePair));
+          });
+
+          if (!selectedCandidatePair) {
+            var transport = Array.from(stats.values()).find(function (stat) {
+              return stat.type === 'transport';
+            });
+            selectedCandidatePair = stats.get(transport.selectedCandidatePairId);
+          }
+
+          OCA.Talk.debug.log('--------ICE candidate pair selected for ' + OCA.Talk.debug.getShortId(this) + ': ' + candidatePairToString(selectedCandidatePair));
+        }.bind(this));
+        break;
+
+      case 'disconnected':
+        OCA.Talk.debug.log('--------ICE disconnected: ' + OCA.Talk.debug.getShortId(this));
+        break;
+
+      case 'failed':
+        OCA.Talk.debug.log('--------ICE connection failed: ' + OCA.Talk.debug.getShortId(this));
+        break;
+
+      case 'closed':
+        OCA.Talk.debug.log('--------ICE connection closed: ' + OCA.Talk.debug.getShortId(this));
+        break;
+    }
+  }.bind(this));
   this.pc.addEventListener('iceconnectionstatechange', this.emit.bind(this, 'iceConnectionStateChange'));
   this.pc.addEventListener('iceconnectionstatechange', function () {
     switch (self.pc.iceConnectionState) {
@@ -692,6 +764,7 @@ util.inherits(Peer, WildEmitter);
 
 Peer.prototype.offer = function (options) {
   this.pc.createOffer(options).then(function (offer) {
+    OCA.Talk.debug.log('--------Set local offer for ' + OCA.Talk.debug.getShortId(this) + ': ' + offer.sdp);
     this.pc.setLocalDescription(offer).then(function () {
       if (this.parent.config.nick) {
         // The offer is a RTCSessionDescription that only serializes
@@ -714,6 +787,7 @@ Peer.prototype.offer = function (options) {
 };
 
 Peer.prototype.handleOffer = function (offer) {
+  OCA.Talk.debug.log('--------Set remote offer for ' + OCA.Talk.debug.getShortId(this) + ': ' + offer.sdp);
   this.pc.setRemoteDescription(offer).then(function () {
     this.answer();
   }.bind(this)).catch(function (error) {
@@ -723,6 +797,7 @@ Peer.prototype.handleOffer = function (offer) {
 
 Peer.prototype.answer = function () {
   this.pc.createAnswer().then(function (answer) {
+    OCA.Talk.debug.log('--------Set local answer for ' + OCA.Talk.debug.getShortId(this) + ': ' + answer.sdp);
     this.pc.setLocalDescription(answer).then(function () {
       if (this.parent.config.nick) {
         // The answer is a RTCSessionDescription that only serializes
@@ -745,6 +820,7 @@ Peer.prototype.answer = function () {
 };
 
 Peer.prototype.handleAnswer = function (answer) {
+  OCA.Talk.debug.log('--------Set remote answer for ' + OCA.Talk.debug.getShortId(this) + ': ' + answer.sdp);
   this.pc.setRemoteDescription(answer).catch(function (error) {
     console.warn("setRemoteDescription for answer failed: ", error);
   }.bind(this));
@@ -773,6 +849,7 @@ Peer.prototype.handleMessage = function (message) {
     delete message.payload.nick;
     this.handleAnswer(message.payload);
   } else if (message.type === 'candidate') {
+    OCA.Talk.debug.log('--------ICE candidate received for' + OCA.Talk.debug.getShortId(this) + ': ' + (message.payload.candidate ? message.payload.candidate.candidate : 'No "candidate" property'));
     this.pc.addIceCandidate(message.payload.candidate);
   } else if (message.type === 'connectivityError') {
     this.parent.emit('connectivityError', self);
@@ -787,6 +864,7 @@ Peer.prototype.handleMessage = function (message) {
       name: message.payload.name
     });
   } else if (message.type === 'endOfCandidates') {
+    OCA.Talk.debug.log('--------ICE end of candidates received for ' + OCA.Talk.debug.getShortId(this));
     this.pc.addIceCandidate('');
   } else if (message.type === 'unshareScreen') {
     this.parent.emit('unshareScreen', {
@@ -884,6 +962,7 @@ Peer.prototype.onIceCandidate = function (event) {
   var candidate = event.candidate;
 
   if (this.closed) {
+    OCA.Talk.debug.log('--------ICE candidate not sent to ' + OCA.Talk.debug.getShortId(this) + ' due to being closed: ' + (candidate ? candidate.candidate : 'End of candidates'));
     return;
   }
 
@@ -902,9 +981,11 @@ Peer.prototype.onIceCandidate = function (event) {
           sdpMLineIndex: candidate.sdpMLineIndex
         }
       };
+      OCA.Talk.debug.log('--------ICE candidate sent to ' + OCA.Talk.debug.getShortId(this) + ': ' + candidate.candidate);
       this.send('candidate', expandedCandidate);
     }
   } else {
+    OCA.Talk.debug.log('--------ICE end of candidates for ' + OCA.Talk.debug.getShortId(this));
     this.logger.log("End of candidates.");
   }
 };
@@ -932,6 +1013,7 @@ Peer.prototype.end = function () {
     return;
   }
 
+  OCA.Talk.debug.log('--------Peer ended: ' + OCA.Talk.debug.getShortId(this));
   this.pc.close();
   this.handleStreamRemoved();
 };
