@@ -229,6 +229,8 @@
 	};
 
 	OCA.Talk.Signaling.Base.prototype.joinRoom = function(token, password) {
+		OCA.Talk.debug.log("Join room " + token);
+
 		$.ajax({
 			url: OC.linkToOCS('apps/spreed/api/v1/room', 2) + token + '/participants/active',
 			type: 'POST',
@@ -240,6 +242,7 @@
 			},
 			success: function (result) {
 				console.log("Joined", result);
+				OCA.Talk.debug.log("----Joined room " + token);
 				this.currentRoomToken = token;
 				this._trigger('joinRoom', [token]);
 				this._runPendingChatRequests();
@@ -322,6 +325,8 @@
 	};
 
 	OCA.Talk.Signaling.Base.prototype.joinCall = function(token, flags) {
+		OCA.Talk.debug.log("----Join call " + token + " with flags " + flags);
+
 		$.ajax({
 			url: OC.linkToOCS('apps/spreed/api/v1/call', 2) + token,
 			type: 'POST',
@@ -332,6 +337,7 @@
 				request.setRequestHeader('Accept', 'application/json');
 			},
 			success: function () {
+				OCA.Talk.debug.log("--------Joined call");
 				this.currentCallToken = token;
 				this.currentCallFlags = flags;
 				this._trigger('joinCall', [token]);
@@ -349,6 +355,7 @@
 	};
 
 	OCA.Talk.Signaling.Base.prototype.leaveCall = function(token, keepToken) {
+		OCA.Talk.debug.log("--------Leave call " + token + " keeping token " + keepToken);
 
 		if (!token) {
 			return;
@@ -359,6 +366,7 @@
 			method: 'DELETE',
 			async: false,
 			success: function () {
+				OCA.Talk.debug.log("----Left call");
 				this._trigger('leaveCall', [token, keepToken]);
 				this._leaveCallSuccess(token);
 				// We left the current call.
@@ -756,6 +764,7 @@
 		// simultaneously in case the server connection is interrupted.
 		var interval = this.reconnectIntervalMs - (this.reconnectIntervalMs / 2) + (this.reconnectIntervalMs * Math.random());
 		console.log("Reconnect in", interval);
+		OCA.Talk.debug.log("Reconnect in " + interval);
 		this.reconnected = true;
 		this.reconnectTimer = window.setTimeout(function() {
 			this.reconnectTimer = null;
@@ -773,6 +782,7 @@
 
 	OCA.Talk.Signaling.Standalone.prototype.connect = function() {
 		console.log("Connecting to", this.url);
+		OCA.Talk.debug.log("Connecting to " + this.url);
 		this.callbacks = {};
 		this.id = 1;
 		this.pendingMessages = [];
@@ -782,15 +792,18 @@
 		window.signalingSocket = this.socket;
 		this.socket.onopen = function(event) {
 			console.log("Connected", event);
+			OCA.Talk.debug.log("Socket connected");
 			this.reconnectIntervalMs = this.initialReconnectIntervalMs;
 			this.sendHello();
 		}.bind(this);
 		this.socket.onerror = function(event) {
 			console.log("Error", event);
+			OCA.Talk.debug.log("Socket error");
 			this.reconnect();
 		}.bind(this);
 		this.socket.onclose = function(event) {
 			console.log("Close", event);
+			OCA.Talk.debug.log("Socket closed");
 			this.reconnect();
 		}.bind(this);
 		this.socket.onmessage = function(event) {
@@ -861,6 +874,8 @@
 	};
 
 	OCA.Talk.Signaling.Standalone.prototype.forceReconnect = function(newSession, flags) {
+		OCA.Talk.debug.log("Force reconnect with new session " + newSession + " and flags " + flags);
+
 		if (flags !== undefined) {
 			this.currentCallFlags = flags;
 		}
@@ -940,6 +955,7 @@
 		var msg;
 		if (this.resumeId) {
 			console.log("Trying to resume session", this.sessionId);
+			OCA.Talk.debug.log("Trying to resume session " + this.sessionId);
 			msg = {
 				"type": "hello",
 				"hello": {
@@ -971,9 +987,11 @@
 
 	OCA.Talk.Signaling.Standalone.prototype.helloResponseReceived = function(data) {
 		console.log("Hello response received", data);
+		OCA.Talk.debug.log("Hello response received");
 		if (data.type !== "hello") {
 			if (this.resumeId) {
 				// Resuming the session failed, reconnect as new session.
+				OCA.Talk.debug.log("Resuming the session " + this.resumeId + " failed, reconnect as new session");
 				this.resumeId = '';
 				this.sendHello();
 				return;
@@ -981,6 +999,7 @@
 
 			// TODO(fancycode): How should this be handled better?
 			console.error("Could not connect to server", data);
+			OCA.Talk.debug.log("Could not connect to server");
 			this.reconnect();
 			return;
 		}
@@ -989,11 +1008,14 @@
 		this.connected = true;
 		if (this._forceReconnect && resumedSession) {
 			console.log("Perform pending forced reconnect");
+			OCA.Talk.debug.log("Perform pending forced reconnect with session " + resumedSession);
 			this.forceReconnect(true);
 			return;
 		}
 		this.sessionId = data.hello.sessionid;
 		this.resumeId = data.hello.resumeid;
+		OCA.Talk.debug.log("Setting sessionId " + this.sessionId + " and resumeId " + this.resumeId);
+		OCA.Talk.debug.log("User agent: " + window.navigator.userAgent);
 		this.features = {};
 		var i;
 		if (data.hello.server && data.hello.server.features) {
@@ -1035,6 +1057,7 @@
 			// the room would be re-joined again in the "helloResponseReceived"
 			// callback, leading to two entries for anonymous participants.
 			console.log("Not connected to signaling server yet, defer joining room", token);
+			OCA.Talk.debug.log("Not connected to signaling server yet, defer joining room " + token);
 			this.currentRoomToken = token;
 			return;
 		}
@@ -1045,10 +1068,12 @@
 	OCA.Talk.Signaling.Standalone.prototype._joinRoomSuccess = function(token, nextcloudSessionId) {
 		if (!this.sessionId) {
 			console.log("No hello response received yet, not joining room", token);
+			OCA.Talk.debug.log("No hello response received yet, not joining room " + token);
 			return;
 		}
 
 		console.log("Join room", token);
+		OCA.Talk.debug.log("----Signaling join room " + token);
 		this.doSend({
 			"type": "room",
 			"room": {
@@ -1066,6 +1091,7 @@
 	OCA.Talk.Signaling.Standalone.prototype.joinCall = function(token, flags) {
 		if (this.signalingRoomJoined !== token) {
 			console.log("Not joined room yet, not joining call", token);
+			OCA.Talk.debug.log("Not joined room yet, not joining call " + token);
 			this.pendingJoinCall = {
 				token: token,
 				flags: flags
@@ -1088,6 +1114,7 @@
 
 	OCA.Talk.Signaling.Standalone.prototype.joinResponseReceived = function(data, token) {
 		console.log("Joined", data, token);
+		OCA.Talk.debug.log("----Signaling joined room " + token);
 		this.signalingRoomJoined = token;
 		if (this.pendingJoinCall && token === this.pendingJoinCall.token) {
 			this.joinCall(this.pendingJoinCall.token, this.pendingJoinCall.flags);
@@ -1107,6 +1134,7 @@
 
 	OCA.Talk.Signaling.Standalone.prototype._doLeaveRoom = function(token) {
 		console.log("Leave room", token);
+		OCA.Talk.debug.log("----Leave room " + token);
 		this.doSend({
 			"type": "room",
 			"room": {
@@ -1114,6 +1142,7 @@
 			}
 		}, function(data) {
 			console.log("Left", data);
+			OCA.Talk.debug.log("Left: " + data);
 			this.signalingRoomJoined = null;
 			// Any users we previously had in the room also "left" for us.
 			var leftUsers = _.keys(this.joinedUsers);
@@ -1155,10 +1184,13 @@
 						// may now no longer exist.
 						leftUsers = _.extend({}, this.joinedUsers);
 					}
+					var joinedUsersString = "";
 					for (i = 0; i < joinedUsers.length; i++) {
+						joinedUsersString += "[" + joinedUsers[i].sessionid.substring(0, 10) + (joinedUsers[i].userid? (" / " + joinedUsers[i].userid.substring(0, 10)): "") + "], ";
 						this.joinedUsers[joinedUsers[i].sessionid] = true;
 						delete leftUsers[joinedUsers[i].sessionid];
 					}
+					OCA.Talk.debug.log("----Users joined: " + joinedUsersString);
 					leftUsers = _.keys(leftUsers);
 					if (leftUsers.length) {
 						this._trigger("usersLeft", [leftUsers]);
@@ -1171,9 +1203,12 @@
 				var leftSessionIds = data.event.leave || [];
 				if (leftSessionIds.length) {
 					console.log("Users left", leftSessionIds);
+					var leftSessionIdsString = "";
 					for (i = 0; i < leftSessionIds.length; i++) {
+						leftSessionIdsString += leftSessionIds[i].substring(0, 10) + ", ";
 						delete this.joinedUsers[leftSessionIds[i]];
 					}
+					OCA.Talk.debug.log("----Users left: " + leftSessionIdsString);
 					this._trigger("usersLeft", [leftSessionIds]);
 					this._trigger('participantListChanged');
 				}
@@ -1240,6 +1275,13 @@
 	OCA.Talk.Signaling.Standalone.prototype.processRoomParticipantsEvent = function(data) {
 		switch (data.event.type) {
 			case "update":
+				var usersString = '';
+				var users = data.event.update.users || [];
+				users.forEach(function(user) {
+					var sessionId = user.sessionId || user.sessionid;
+					usersString += '[' + sessionId.substring(0, 10) + (user.userid? (' / ' + user.userid.substring(0, 10)): '') + ', ' + user.inCall + '], ';
+				});
+				OCA.Talk.debug.log("----Participants update: " + usersString);
 				this._trigger("usersChanged", [data.event.update.users || []]);
 				this._trigger('participantListChanged');
 				this.internalSyncRooms();
@@ -1281,6 +1323,7 @@
 			sessionid = sessionid.sessionId || sessionid.sessionid;
 		}
 		console.log("Request offer from", sessionid);
+		OCA.Talk.debug.log("--------Request offer from " + sessionid.substring(0, 10));
 		this.doSend({
 			"type": "message",
 			"message": {
@@ -1310,6 +1353,7 @@
 			sessionid = sessionid.sessionId || sessionid.sessionid;
 		}
 		console.log("Send offer to", sessionid);
+		OCA.Talk.debug.log("--------Send offer to " + sessionid.substring(0, 10));
 		this.doSend({
 			"type": "message",
 			"message": {
