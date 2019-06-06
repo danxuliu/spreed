@@ -223,6 +223,7 @@ var spreedPeerConnectionTable = [];
 
 		disconnectedSessionIds.forEach(function(sessionId) {
 			console.log('XXX Remove peer', sessionId);
+			OCA.Talk.debug.log('--------Peer removed: ' + sessionId.substring(0, 10));
 			OCA.SpreedMe.webrtc.removePeers(sessionId);
 			OCA.SpreedMe.speakers.remove(sessionId, true);
 			OCA.SpreedMe.videos.remove(sessionId);
@@ -289,27 +290,37 @@ var spreedPeerConnectionTable = [];
 
 		var signaling = app.signaling;
 		signaling.on('usersLeft', function(users) {
+			var leftSessionIdsString = "";
 			users.forEach(function(user) {
+				leftSessionIdsString += user.substring(0, 10) + ", ";
 				delete usersInCallMapping[user];
 			});
+			OCA.Talk.debug.log('--------Webrtc users left: ' + leftSessionIdsString);
 			usersChanged(signaling, [], users);
 		});
 		signaling.on('usersChanged', function(users) {
+			var usersString = '';
 			users.forEach(function(user) {
 				var sessionId = user.sessionId || user.sessionid;
+				usersString += '[' + sessionId.substring(0, 10) + (user.userid? (' / ' + user.userid.substring(0, 10)): '') + ', ' + user.inCall + '], ';
 				usersInCallMapping[sessionId] = user;
 			});
+			OCA.Talk.debug.log('--------Webrtc users changed: ' + usersString);
 			usersInCallChanged(signaling, usersInCallMapping);
 		});
 		signaling.on('usersInRoom', function(users) {
+			var usersString = '';
 			usersInCallMapping = {};
 			users.forEach(function(user) {
 				var sessionId = user.sessionId || user.sessionid;
+				usersString += '[' + sessionId.substring(0, 10) + (user.userid? (' / ' + user.userid.substring(0, 10)): '') + ', ' + user.inCall + '], ';
 				usersInCallMapping[sessionId] = user;
 			});
+			OCA.Talk.debug.log('--------Webrtc users in room: ' + usersString);
 			usersInCallChanged(signaling, usersInCallMapping);
 		});
 		signaling.on('leaveCall', function (token, reconnect) {
+			OCA.Talk.debug.log('--------Webrtc leave call, reconnect ' + reconnect);
 			// When the MCU is used and there is a connection error the call is
 			// left and then joined again to perform the reconnection. In those
 			// cases the call should be kept active from the point of view of
@@ -861,6 +872,7 @@ var spreedPeerConnectionTable = [];
 
 		OCA.SpreedMe.webrtc.on('createdPeer', function (peer) {
 			console.log('PEER CREATED', peer);
+			OCA.Talk.debug.log('--------Peer created: ' + OCA.Talk.debug.getShortId(peer) + ', ' + peer.type);
 			if (peer.type === 'video') {
 				OCA.SpreedMe.videos.addPeer(peer);
 				// Make sure required data channels exist for all peers. This
@@ -1036,6 +1048,8 @@ var spreedPeerConnectionTable = [];
 		OCA.SpreedMe.webrtc.on('localMediaStarted', function (configuration) {
 			console.log('localMediaStarted');
 
+			OCA.Talk.debug.log('--------Local media started');
+
 			clearLocalStreamRequestedTimeoutAndHideNotification();
 
 			app.startLocalMedia(configuration);
@@ -1048,6 +1062,8 @@ var spreedPeerConnectionTable = [];
 
 		OCA.SpreedMe.webrtc.on('localMediaError', function(error) {
 			console.log('Access to microphone & camera failed', error);
+
+			OCA.Talk.debug.log('--------Access to microphone & camera failed: ' + error.name + ': ' + error.message);
 
 			clearLocalStreamRequestedTimeoutAndHideNotification();
 
