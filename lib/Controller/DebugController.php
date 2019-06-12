@@ -45,19 +45,46 @@ class DebugController extends AEnvironmentAwareController {
 	/**
 	 * @PublicPage
 	 *
-	 * Logs a new message in Nextcloud log.
+	 * Logs one or more messages in Nextcloud log.
+	 *
+	 * The messages must be provided as an array of message objects encoded as a
+	 * JSON string.
+	 *
+	 * Each message object has the following properties:
+	 * -Mandatory:
+	 *   -"message": the message to log.
+	 * -Optional:
+	 *   -"logLevel": the log level, warning by default.
+	 *   -"timestamp": the timestamp to prepend to the message, if any.
 	 *
 	 * The message could get logged at a different time than it was created, so
 	 * it is possible to provide an explicit timestamp to be included in the
 	 * log; note that this will be prepended to the message, although it will
 	 * not replace the log timestamp.
 	 *
-	 * @param string $message the message to log
-	 * @param int $logLevel the log level, warning by default
-	 * @param string $timestamp timestamp to include, if any
+	 * @param string $messages the JSON encoded messages to log
 	 * @return DataResponse the status code is "201 Created" if successful.
 	 */
-	public function log(string $message, int $logLevel = ILogger::WARN, int $timestamp = 0): DataResponse {
+	public function log(string $messages): DataResponse {
+		$messages = json_decode($messages);
+
+		foreach ($messages as $message) {
+			$this->logMessage($message);
+		}
+
+		return new DataResponse([], Http::STATUS_CREATED);
+	}
+
+	/**
+	 * Logs a new message in Nextcloud log.
+	 *
+	 * @param Object $messageObject the message object to log
+	 */
+	private function logMessage($messageObject) {
+		$message = $messageObject->message;
+		$logLevel = isset($messageObject->logLevel)? $messageObject->logLevel: ILogger::WARN;
+		$timestamp = isset($messageObject->timestamp)? (int)$messageObject->timestamp: 0;
+
 		if (!empty($timestamp)) {
 			$message = date('Y-m-d H:i:s', $timestamp) . ' - ' . $message;
 		} else {
@@ -65,7 +92,5 @@ class DebugController extends AEnvironmentAwareController {
 		}
 
 		$this->logger->log($logLevel, $message);
-
-		return new DataResponse([], Http::STATUS_CREATED);
 	}
 }

@@ -133,8 +133,10 @@
 
 		this._isSendingMessages = true;
 
-		this._sendMessage(this._pendingMessages[0]).done(function(/*result*/) {
-			this._pendingMessages.shift();
+		var pendingMessagesSentCount = this._pendingMessages.length;
+
+		this._sendMessages(this._pendingMessages).done(function(/*result*/) {
+			this._pendingMessages.splice(0, pendingMessagesSentCount);
 
 			this._isSendingMessages = false;
 
@@ -146,12 +148,14 @@
 		}.bind(this));
 	};
 
-	OCA.Talk.Debug.prototype._sendMessage = function(message) {
+	OCA.Talk.Debug.prototype._sendMessages = function(messages) {
 		var defer = $.Deferred();
 		$.ajax({
 			url: OC.linkToOCS('apps/spreed/api/v1', 2) + 'log',
 			type: 'POST',
-			data: message,
+			data: {
+				messages: JSON.stringify(messages)
+			},
 			beforeSend: function (request) {
 				request.setRequestHeader('Accept', 'application/json');
 			},
