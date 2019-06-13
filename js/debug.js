@@ -139,8 +139,6 @@
 			this._pendingMessages.splice(0, pendingMessagesSentCount);
 
 			this._isSendingMessages = false;
-
-			this._sendPendingMessages();
 		}.bind(this)).fail(function(/*xhr, textStatus, errorThrown*/) {
 			console.log('Sending pending debug message has failed.');
 
