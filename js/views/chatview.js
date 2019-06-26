@@ -243,6 +243,8 @@
 			this.$el.find('.has-tooltip').tooltip({container: this._tooltipContainer});
 			this.$container = this.$el.find('ul.comments');
 
+			this.$container.scroll(this._loadOlderMessagesOnScrollToTop.bind(this));
+
 			this._virtualList = new OCA.SpreedMe.Views.VirtualList(this.$container);
 
 			if (OC.getCurrentUser().uid) {
@@ -387,6 +389,45 @@
 			}
 
 			this._virtualList.reload();
+		},
+
+		_loadOlderMessagesOnScrollToTop: function() {
+			if (!this.collection.canLoadOlderMessages()) {
+				// TODO remove the event handler, as it is not needed
+				// anymore
+				return;
+			}
+
+			if (this.$container.scrollTop() > this.$container.outerHeight()) {
+				return;
+			}
+
+			this._loadOlderMessages();
+		},
+
+		_loadOlderMessages: function() {
+			if (this._loadOlderMessagesPromise === this.collection.loadOlderMessages()) {
+				return;
+			}
+
+			// TODO remove
+			console.log("Load older");
+
+			// TODO merge above
+			var onLoadOlderMessagesPromise = function() {
+// 				if (this.$container.scrollTop() <= this.$container.outerHeight() && this.collection.canLoadOlderMessages()) {
+// 					// While waiting to receive new messages the container
+// 					// was scrolled again beyond the point that triggers the
+// 					// fetch of older messages, so do it again.
+// 					this._loadOlderMessagesPromise = this.collection.loadOlderMessages();
+// 					this._loadOlderMessagesPromise.then(onLoadOlderMessagesPromise);
+// 				} else {
+					delete this._loadOlderMessagesPromise;
+// 				}
+			}.bind(this);
+
+			this._loadOlderMessagesPromise = this.collection.loadOlderMessages();
+			this._loadOlderMessagesPromise.then(onLoadOlderMessagesPromise);
 		},
 
 		_formatItem: function(commentModel) {
@@ -572,6 +613,13 @@
 
 			if (this._scrollToNew) {
 				this._virtualList.scrollTo(this._virtualList.getLastElement());
+			}
+
+			// Keep loading older messages until there is a scroll bar;
+			// otherwise the user would not be able to scroll to load further
+			// messages.
+			if (!this._virtualList.isScrollable() && this.collection.canLoadOlderMessages()) {
+				this._loadOlderMessages();
 			}
 		},
 
