@@ -78,6 +78,18 @@
 			});
 
 			_.bindAll(this, '_onAutoComplete');
+
+			document.addEventListener('resize', function(event) {
+				this.handleFormResize(event.detail.prevFormHeight);
+			});
+
+		},
+
+		handleFormResize : function (prevFormHeight) {
+			var formHeight = document.getElementsByClassName('newCommentForm')[0].clientHeight;
+			if (prevFormHeight < formHeight) {
+				this._virtualList.scrollToLastVisibleElement();
+			}
 		},
 
 		setRoom: function(model) {
@@ -661,6 +673,10 @@
 		},
 
 		_onTypeComment: function(ev) {
+			var prevFormHeight = document.getElementsByClassName('newCommentForm')[0].clientHeight
+			var newMessageFieldResized = new CustomEvent('resize', { detail : { prevFormHeight : prevFormHeight }});
+			document.dispatchEvent(newMessageFieldResized);
+
 			var $field = $(ev.target);
 			var $submitButton = $field.data('submitButtonEl');
 			if (!$submitButton) {
