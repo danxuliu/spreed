@@ -412,45 +412,43 @@ var spreedPeerConnectionTable = [];
 			OCA.SpreedMe.webrtc.sendDirectlyToAll(channel, message, payload);
 		};
 
-		OCA.SpreedMe.videos = {
-			// The nick name below the avatar is distributed through the
-			// DataChannel of the PeerConnection and only sent once during
-			// establishment. For the MCU case, the sending PeerConnection
-			// is created once and then never changed when more participants
-			// join. For this, we periodically send the nick to all other
-			// participants through the sending PeerConnection.
-			//
-			// TODO: The name for the avatar should come from the participant
-			// list which already has all information and get rid of using the
-			// DataChannel for this.
-			startSendingNick: function(peer) {
-				if (!signaling.hasFeature("mcu")) {
-					return;
-				}
-
-				OCA.SpreedMe.videos.stopSendingNick(peer);
-				peer.nickInterval = setInterval(function() {
-					var payload;
-					var user = OCA.Talk.getCurrentUser();
-					if (!user.uid) {
-						payload = localStorage.getItem("nick");
-					} else {
-						payload = {
-							"name": user.displayName,
-							"userid": user.uid
-						};
-					}
-					peer.sendDirectly('status', "nickChanged", payload);
-				}, 1000);
-			},
-			stopSendingNick: function(peer) {
-				if (!peer.nickInterval) {
-					return;
-				}
-
-				clearInterval(peer.nickInterval);
-				peer.nickInterval = null;
+		// The nick name below the avatar is distributed through the DataChannel
+		// of the PeerConnection and only sent once during establishment. For
+		// the MCU case, the sending PeerConnection is created once and then
+		// never changed when more participants join. For this, we periodically
+		// send the nick to all other participants through the sending
+		// PeerConnection.
+		//
+		// TODO: The name for the avatar should come from the participant list
+		// which already has all information and get rid of using the
+		// DataChannel for this.
+		function stopSendingNick(peer) {
+			if (!peer.nickInterval) {
+				return;
 			}
+
+			clearInterval(peer.nickInterval);
+			peer.nickInterval = null;
+		};
+		function startSendingNick(peer) {
+			if (!signaling.hasFeature("mcu")) {
+				return;
+			}
+
+			stopSendingNick(peer);
+			peer.nickInterval = setInterval(function() {
+				var payload;
+				var user = OCA.Talk.getCurrentUser();
+				if (!user.uid) {
+					payload = localStorage.getItem("nick");
+				} else {
+					payload = {
+						"name": user.displayName,
+						"userid": user.uid
+					};
+				}
+				peer.sendDirectly('status', "nickChanged", payload);
+			}, 1000);
 		};
 
 		function handleIceConnectionStateConnected(peer) {
@@ -597,7 +595,7 @@ var spreedPeerConnectionTable = [];
 				if (peer.id === OCA.SpreedMe.webrtc.connection.getSessionid()) {
 					console.log("Not adding ICE connection state handler for own peer", peer);
 
-					OCA.SpreedMe.videos.startSendingNick(peer);
+					startSendingNick(peer);
 				} else {
 					setHandlerForIceConnectionStateChange(peer);
 				}
@@ -645,7 +643,7 @@ var spreedPeerConnectionTable = [];
 				clearInterval(peer.check_video_interval);
 				peer.check_video_interval = null;
 			}
-			OCA.SpreedMe.videos.stopSendingNick(peer);
+			stopSendingNick(peer);
 		}
 
 		function startPeerCheckMedia(peer, stream) {
