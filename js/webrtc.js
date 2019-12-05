@@ -413,113 +413,6 @@ var spreedPeerConnectionTable = [];
 		};
 
 		OCA.SpreedMe.videos = {
-			addPeer: function(peer) {
-				var signaling = OCA.SpreedMe.app.signaling;
-				if (peer.id === webrtc.connection.getSessionid()) {
-					console.log("Not adding video for own peer", peer);
-					OCA.SpreedMe.videos.startSendingNick(peer);
-					return;
-				}
-
-				// Initialize ice restart counter for peer
-				spreedPeerConnectionTable[peer.id] = 0;
-
-				peer.pc.addEventListener('iceconnectionstatechange', function () {
-					peer.emit('extendedIceConnectionStateChange', peer.pc.iceConnectionState);
-
-					switch (peer.pc.iceConnectionState) {
-						case 'checking':
-							console.log('Connecting to peer...');
-
-							break;
-						case 'connected':
-						case 'completed': // on caller side
-							console.log('Connection established.');
-
-							// Send the current information about the video and microphone state
-							if (!OCA.SpreedMe.webrtc.webrtc.isVideoEnabled()) {
-								OCA.SpreedMe.webrtc.emit('videoOff');
-							} else {
-								OCA.SpreedMe.webrtc.emit('videoOn');
-							}
-							if (!OCA.SpreedMe.webrtc.webrtc.isAudioEnabled()) {
-								OCA.SpreedMe.webrtc.emit('audioOff');
-							} else {
-								OCA.SpreedMe.webrtc.emit('audioOn');
-							}
-							if (!OCA.Talk.getCurrentUser()['uid']) {
-								var currentGuestNick = localStorage.getItem("nick");
-								sendDataChannelToAll('status', 'nickChanged', currentGuestNick);
-							}
-
-							// Reset ice restart counter for peer
-							if (spreedPeerConnectionTable[peer.id] > 0) {
-								spreedPeerConnectionTable[peer.id] = 0;
-							}
-							break;
-						case 'disconnected':
-							console.log('Disconnected.');
-
-							setTimeout(function() {
-								if (peer.pc.iceConnectionState !== 'disconnected') {
-									return;
-								}
-
-								peer.emit('extendedIceConnectionStateChange', 'disconnected-long');
-
-								if (!signaling.hasFeature("mcu")) {
-									// ICE failures will be handled in "iceFailed"
-									// below for MCU installations.
-
-									// If the peer is still disconnected after 5 seconds we try ICE restart.
-									if (spreedPeerConnectionTable[peer.id] < 5) {
-										if (peer.pc.localDescription.type === 'offer' &&
-											peer.pc.signalingState === 'stable') {
-											spreedPeerConnectionTable[peer.id] ++;
-											console.log('ICE restart.');
-											peer.icerestart();
-										}
-									}
-								}
-							}, 5000);
-							break;
-						case 'failed':
-							console.log('Connection failed.');
-
-							if (!signaling.hasFeature("mcu")) {
-								// ICE failures will be handled in "iceFailed"
-								// below for MCU installations.
-								if (spreedPeerConnectionTable[peer.id] < 5) {
-									if (peer.pc.localDescription.type === 'offer' &&
-										peer.pc.signalingState === 'stable') {
-										spreedPeerConnectionTable[peer.id] ++;
-										console.log('ICE restart.');
-										peer.icerestart();
-									}
-								} else {
-									console.log('ICE failed after 5 tries.');
-
-									peer.emit('extendedIceConnectionStateChange', 'failed-no-restart');
-								}
-							} else {
-								console.log('Request offer again');
-
-								signaling.requestOffer(peer.id, 'video');
-
-								delayedConnectionToPeer[peer.id] = setInterval(function() {
-									console.log('No offer received, request offer again');
-
-									signaling.requestOffer(peer.id, 'video');
-								}, 10000);
-							}
-							break;
-						case 'closed':
-							console.log('Connection closed.');
-
-							break;
-					}
-				});
-			},
 			// The nick name below the avatar is distributed through the
 			// DataChannel of the PeerConnection and only sent once during
 			// establishment. For the MCU case, the sending PeerConnection
@@ -560,6 +453,125 @@ var spreedPeerConnectionTable = [];
 			}
 		};
 
+		function handleIceConnectionStateConnected(peer) {
+			// Send the current information about the video and microphone
+			// state.
+			if (!OCA.SpreedMe.webrtc.webrtc.isVideoEnabled()) {
+				OCA.SpreedMe.webrtc.emit('videoOff');
+			} else {
+				OCA.SpreedMe.webrtc.emit('videoOn');
+			}
+			if (!OCA.SpreedMe.webrtc.webrtc.isAudioEnabled()) {
+				OCA.SpreedMe.webrtc.emit('audioOff');
+			} else {
+				OCA.SpreedMe.webrtc.emit('audioOn');
+			}
+			if (!OCA.Talk.getCurrentUser()['uid']) {
+				var currentGuestNick = localStorage.getItem("nick");
+				sendDataChannelToAll('status', 'nickChanged', currentGuestNick);
+			}
+
+			// Reset ice restart counter for peer
+			if (spreedPeerConnectionTable[peer.id] > 0) {
+				spreedPeerConnectionTable[peer.id] = 0;
+			}
+		};
+
+		function handleIceConnectionStateDisconnected(peer) {
+			var signaling = OCA.SpreedMe.webrtc.connection;
+
+			setTimeout(function() {
+				if (peer.pc.iceConnectionState !== 'disconnected') {
+					return;
+				}
+
+				peer.emit('extendedIceConnectionStateChange', 'disconnected-long');
+
+				if (!signaling.hasFeature("mcu")) {
+					// Disconnections are not handled with the MCU, only
+					// failures.
+
+					// If the peer is still disconnected after 5 seconds we try
+					// ICE restart.
+					if (spreedPeerConnectionTable[peer.id] < 5) {
+						if (peer.pc.localDescription.type === 'offer' &&
+								peer.pc.signalingState === 'stable') {
+							spreedPeerConnectionTable[peer.id] ++;
+							console.log('ICE restart.', peer);
+							peer.icerestart();
+						}
+					}
+				}
+			}, 5000);
+		};
+
+		function handleIceConnectionStateFailed(peer) {
+			var signaling = OCA.SpreedMe.webrtc.connection;
+
+			if (!signaling.hasFeature("mcu")) {
+				if (spreedPeerConnectionTable[peer.id] < 5) {
+					if (peer.pc.localDescription.type === 'offer' &&
+							peer.pc.signalingState === 'stable') {
+						spreedPeerConnectionTable[peer.id] ++;
+						console.log('ICE restart.', peer);
+						peer.icerestart();
+					}
+				} else {
+					console.log('ICE failed after 5 tries.', peer);
+
+					peer.emit('extendedIceConnectionStateChange', 'failed-no-restart');
+				}
+			} else {
+				// This handles ICE failures of a receiver peer; ICE failures of
+				// the sender peer are handled in the "iceFailed" event.
+				console.log('Request offer again', peer);
+
+				signaling.requestOffer(peer.id, 'video');
+
+				delayedConnectionToPeer[peer.id] = setInterval(function() {
+					console.log('No offer received, request offer again', peer);
+
+					signaling.requestOffer(peer.id, 'video');
+				}, 10000);
+			}
+		};
+
+		function setHandlerForIceConnectionStateChange(peer) {
+			// Initialize ice restart counter for peer
+			spreedPeerConnectionTable[peer.id] = 0;
+
+			peer.pc.addEventListener('iceconnectionstatechange', function () {
+				peer.emit('extendedIceConnectionStateChange', peer.pc.iceConnectionState);
+
+				switch (peer.pc.iceConnectionState) {
+					case 'checking':
+						console.log('Connecting to peer...', peer);
+
+						break;
+					case 'connected':
+					case 'completed': // on caller side
+						console.log('Connection established.', peer);
+
+						handleIceConnectionStateConnected(peer);
+						break;
+					case 'disconnected':
+						console.log('Disconnected.', peer);
+
+						handleIceConnectionStateDisconnected(peer);
+						break;
+					case 'failed':
+						console.log('Connection failed.', peer);
+
+						handleIceConnectionStateFailed(peer);
+						break;
+					case 'closed':
+						console.log('Connection closed.', peer);
+
+						break;
+				}
+			});
+		};
+
 		OCA.SpreedMe.webrtc.on('createdPeer', function (peer) {
 			console.log('PEER CREATED', peer);
 
@@ -582,7 +594,14 @@ var spreedPeerConnectionTable = [];
 			}
 
 			if (peer.type === 'video') {
-				OCA.SpreedMe.videos.addPeer(peer);
+				if (peer.id === OCA.SpreedMe.webrtc.connection.getSessionid()) {
+					console.log("Not adding ICE connection state handler for own peer", peer);
+
+					OCA.SpreedMe.videos.startSendingNick(peer);
+				} else {
+					setHandlerForIceConnectionStateChange(peer);
+				}
+
 				// Make sure required data channels exist for all peers. This
 				// is required for peers that get created by SimpleWebRTC from
 				// received "Offer" messages. Otherwise the "channelMessage"
