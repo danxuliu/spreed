@@ -403,7 +403,6 @@ var spreedPeerConnectionTable = [];
 
 		var spreedListofSharedScreens = {};
 		var latestScreenId = null;
-		var screenSharingActive = false;
 
 		var sendDataChannelToAll = function(channel, message, payload) {
 			// If running with MCU, the message must be sent through the
@@ -565,9 +564,8 @@ var spreedPeerConnectionTable = [];
 		};
 
 		OCA.SpreedMe.sharedScreens = {
-			screenViews: [],
 			switchScreenToId: function(id) {
-				var screenView = OCA.SpreedMe.sharedScreens.screenViews[id];
+				var screenView = OCA.SpreedMe.app._callView.getScreenView(id);
 				if (!screenView) {
 					console.warn('promote: no screen video found for ID', id);
 					return;
@@ -588,7 +586,7 @@ var spreedPeerConnectionTable = [];
 						continue;
 					}
 
-					screenView = OCA.SpreedMe.sharedScreens.screenViews[currentId];
+					screenView = OCA.SpreedMe.app._callView.getScreenView(currentId);
 					if (currentId === id) {
 						screenView.$el.removeClass('hidden');
 					} else {
@@ -607,18 +605,10 @@ var spreedPeerConnectionTable = [];
 
 				latestScreenId = id;
 			},
-			enterScreensharingMode: function() {
-				OCA.SpreedMe.app._callView.unpromoteLatestSpeaker();
-
-				screenSharingActive = true;
-				OCA.SpreedMe.app._callView.setScreenSharingActive(true);
-			},
 			add: function(id) {
 				if (!(typeof id === 'string' || id instanceof String)) {
 					return;
 				}
-
-				OCA.SpreedMe.sharedScreens.enterScreensharingMode();
 
 				spreedListofSharedScreens[id] = (new Date()).getTime();
 
@@ -627,13 +617,6 @@ var spreedPeerConnectionTable = [];
 			remove: function(id) {
 				if (!(typeof id === 'string' || id instanceof String)) {
 					return;
-				}
-
-				var screenView = OCA.SpreedMe.sharedScreens.screenViews[id];
-				if (screenView) {
-					screenView.$el.remove();
-
-					delete OCA.SpreedMe.sharedScreens.screenViews[id];
 				}
 
 				delete spreedListofSharedScreens[id];
@@ -661,17 +644,7 @@ var spreedPeerConnectionTable = [];
 				if (mostRecentId !== null) {
 					OCA.SpreedMe.sharedScreens.switchScreenToId(mostRecentId);
 				}
-
-				OCA.SpreedMe.sharedScreens.exitScreenSharingModeIfThereAreNoScreens();
 			},
-			exitScreenSharingModeIfThereAreNoScreens: function() {
-				var screens = document.getElementById('screens');
-				if (!screens || !screens.hasChildNodes()) {
-					screenSharingActive = false;
-					OCA.SpreedMe.app._callView.setScreenSharingActive(false);
-					OCA.SpreedMe.app._callView.switchToUnpromotedLatestSpeaker();
-				}
-			}
 		};
 
 		OCA.SpreedMe.webrtc.on('createdPeer', function (peer) {
@@ -935,27 +908,12 @@ var spreedPeerConnectionTable = [];
 			}
 		});
 
-		OCA.SpreedMe.webrtc.on('videoAdded', function(video, audio, peer) {
-			console.log('VIDEO ADDED', peer);
-			if (peer.type === 'screen') {
-				OCA.SpreedMe.webrtc.emit('screenAdded', video, peer);
-				return;
-			}
-		});
-
 		OCA.SpreedMe.webrtc.on('speaking', function(){
 			sendDataChannelToAll('status', 'speaking');
 		});
 
 		OCA.SpreedMe.webrtc.on('stoppedSpeaking', function(){
 			sendDataChannelToAll('status', 'stoppedSpeaking');
-		});
-
-		// a peer was removed
-		OCA.SpreedMe.webrtc.on('peerStreamRemoved', function(peer) {
-			if (peer.type === 'screen' && !peer.sharemyscreen) {
-				OCA.SpreedMe.sharedScreens.remove(peer.id);
-			}
 		});
 
 		// Send the audio on and off events via data channel
@@ -972,31 +930,8 @@ var spreedPeerConnectionTable = [];
 			sendDataChannelToAll('status', 'videoOff');
 		});
 
-		OCA.SpreedMe.webrtc.on('screenAdded', function(video, peer) {
-			var screens = document.getElementById('screens');
-			if (screens) {
-				var screenView = new OCA.Talk.Views.ScreenView({
-					localMediaModel: peer? null: OCA.SpreedMe.app._localMediaModel,
-					callParticipantModel: peer? callParticipantCollection.get(peer.id): null,
-				});
-
-				screenView.$el.prependTo($('#screens'));
-
-				if (peer) {
-					OCA.SpreedMe.sharedScreens.screenViews[peer.id] = screenView;
-
-					OCA.SpreedMe.sharedScreens.add(peer.id);
-				} else {
-					OCA.SpreedMe.sharedScreens.screenViews[OCA.SpreedMe.webrtc.connection.getSessionid()] = screenView;
-
-					OCA.SpreedMe.sharedScreens.add(OCA.SpreedMe.webrtc.connection.getSessionid());
-				}
-			}
-		});
-
 		// Local screen added.
 		OCA.SpreedMe.webrtc.on('localScreenAdded', function(video) {
-			OCA.SpreedMe.webrtc.emit('screenAdded', video, null);
 			var signaling = OCA.SpreedMe.app.signaling;
 
 			var currentSessionId = signaling.getSessionid();
@@ -1017,8 +952,6 @@ var spreedPeerConnectionTable = [];
 
 		OCA.SpreedMe.webrtc.on('localScreenStopped', function() {
 			var signaling = OCA.SpreedMe.app.signaling;
-
-			OCA.SpreedMe.sharedScreens.remove(signaling.getSessionid());
 
 			if (!signaling.hasFeature('mcu')) {
 				// Only need to notify clients here if running with MCU.

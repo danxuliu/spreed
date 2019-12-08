@@ -57,16 +57,22 @@
 			'remove': '_removeVideoView',
 			'change:connectionState': '_handleConnectionStateChange',
 			'change:speaking': '_handleSpeakingChange',
+			'change:screen': '_handleScreenChange',
 		},
 
 		initialize: function(options) {
+			this._localCallParticipantModel = options.localCallParticipantModel;
+
 			this._localVideoView = new OCA.Talk.Views.LocalVideoView({
 				localCallParticipantModel: options.localCallParticipantModel,
 				localMediaModel: options.localMediaModel,
 				sharedScreens: options.sharedScreens,
 			});
 
+			this.listenTo(options.localMediaModel, 'change:localScreen', this._handleLocalScreenChange);
+
 			this._videoViews = [];
+			this._screenViews = [];
 
 			this._callViewSpeakers = new OCA.Talk.Views.CallViewSpeakers(this);
 
@@ -149,8 +155,8 @@
 			var dummyElement = '<div id="' + videoView.id() + '"/>';
 			this.getUI('videos').prepend(dummyElement);
 
-			this.addRegion(callParticipantModel.get('id'), { el: document.getElementById(videoView.id()), replaceElement: true });
-			this.showChildView(callParticipantModel.get('id'), videoView);
+			this.addRegion('video-' + callParticipantModel.get('id'), { el: document.getElementById(videoView.id()), replaceElement: true });
+			this.showChildView('video-' + callParticipantModel.get('id'), videoView);
 		},
 
 		getVideoView: function(id) {
@@ -164,7 +170,7 @@
 
 			this._callViewSpeakers.remove(callParticipantModel.get('id'), true);
 
-			var removedRegion = this.removeRegion(callParticipantModel.get('id'));
+			var removedRegion = this.removeRegion('video-' + callParticipantModel.get('id'));
 			// Remove the dummy target element that was replaced by the view
 			// when it was shown and that is restored back when the region is
 			// removed.
@@ -199,22 +205,118 @@
 			}
 		},
 
-		unpromoteLatestSpeaker: function() {
-			this._callViewSpeakers.unpromoteLatestSpeaker();
+		_handleScreenChange: function(callParticipantModel, screen) {
+			var id = callParticipantModel.get('peerId');
+
+			if (!screen) {
+				this._removeScreenView(id);
+
+				return;
+			}
+
+			var screenView = new OCA.Talk.Views.ScreenView({
+				localMediaModel: null,
+				callParticipantModel: callParticipantModel,
+			});
+
+			this._addScreenView(id, screenView);
 		},
 
-		switchToUnpromotedLatestSpeaker: function() {
-			this._callViewSpeakers.switchToUnpromotedLatestSpeaker();
+		_handleLocalScreenChange: function(localMediaModel, localScreen) {
+			var id = this._localCallParticipantModel.get('peerId');
+
+			if (!localScreen) {
+				this._removeScreenView(id);
+
+				return;
+			}
+
+			var screenView = new OCA.Talk.Views.ScreenView({
+				localMediaModel: localMediaModel,
+				callParticipantModel: null,
+			});
+
+			this._addScreenView(id, screenView);
 		},
 
 		isScreenSharingActive: function() {
 			return this._screenSharingActive;
 		},
 
-		setScreenSharingActive: function(active) {
+		_setScreenSharingActive: function(active) {
 			this._screenSharingActive = active;
 
 			this._updateContainerState();
+		},
+
+		_enterScreenSharingMode: function() {
+			if (this._screenSharingActive) {
+				return;
+			}
+
+			this._callViewSpeakers.unpromoteLatestSpeaker();
+
+			this._setScreenSharingActive(true);
+		},
+
+		_addScreenView: function(id, screenView) {
+			if (this._screenViews[id]) {
+				return;
+			}
+
+			this._enterScreenSharingMode();
+
+			this._screenViews[id] = screenView;
+
+			// When adding a region and showing a view on it the target element
+			// of the region must exist in the parent view. Therefore, a dummy
+			// target element, which will be replaced with the ScreenView
+			// itself, has to be added to the parent view.
+			var dummyElement = '<div id="' + screenView.id() + '"/>';
+			this.getUI('screens').prepend(dummyElement);
+
+			this.addRegion('screen-' + id, { el: document.getElementById(screenView.id()), replaceElement: true });
+			this.showChildView('screen-' + id, screenView);
+
+			OCA.SpreedMe.sharedScreens.add(id);
+		},
+
+		getScreenView: function(id) {
+			return this._screenViews[id];
+		},
+
+		_removeScreenView: function(id) {
+			if (!this._screenViews[id]) {
+				return;
+			}
+
+			OCA.SpreedMe.sharedScreens.remove(id);
+
+			var removedRegion = this.removeRegion('screen-' + id);
+			// Remove the dummy target element that was replaced by the view
+			// when it was shown and that is restored back when the region is
+			// removed.
+			if (removedRegion.el.parentNode) {
+				removedRegion.el.parentNode.removeChild(removedRegion.el);
+			}
+
+			delete this._screenViews[id];
+
+			this._exitScreenSharingModeIfThereAreNoScreens();
+		},
+
+		_exitScreenSharingModeIfThereAreNoScreens: function() {
+			if (!this._screenSharingActive) {
+				return;
+			}
+
+			if (Object.keys(this._screenViews).length > 0) {
+				return;
+			}
+
+			this._setScreenSharingActive(false);
+
+			this._callViewSpeakers.switchToUnpromotedLatestSpeaker();
 		},
 
 	});

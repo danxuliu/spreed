@@ -107,6 +107,12 @@
 		 *        to remove the current one.
 		 */
 		_setVideoElement: function(videoElement) {
+			// This view can be destroyed by the CallView when handling the
+			// screen change.
+			if (this.isDestroyed()) {
+				return;
+			}
+
 			this.getUI('video').remove();
 
 			if (videoElement) {
