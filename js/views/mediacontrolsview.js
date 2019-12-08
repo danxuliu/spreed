@@ -86,7 +86,7 @@
 			'change:volume': '_setVolume',
 			'change:videoAvailable': '_setVideoAvailable',
 			'change:videoEnabled': '_setVideoEnabled',
-			'change:sharedScreenId': '_setSharedScreenId',
+			'change:localScreen': '_setLocalScreen',
 		},
 
 		initialize: function(options) {
@@ -101,7 +101,7 @@
 			// Match current model state.
 			this._setAudioAvailable(this.model, this.model.get('audioAvailable'));
 			this._setVideoAvailable(this.model, this.model.get('videoAvailable'));
-			this._setSharedScreenId(this.model, this.model.get('sharedScreenId'));
+			this._setLocalScreen(this.model, this.model.get('localScreen'));
 		},
 
 		toggleAudio: function() {
@@ -239,7 +239,7 @@
 				splitShare = (ffver >= 52);
 			}
 
-			if (this.model.get('sharedScreenId')) {
+			if (this.model.get('localScreen')) {
 				this.getUI('shareScreenEntry').addClass('hidden');
 				this.getUI('shareWindowEntry').addClass('hidden');
 				this.getUI('showScreenEntry').removeClass('hidden');
@@ -260,7 +260,7 @@
 		},
 
 		shareScreen: function() {
-			if (!this.model.get('sharedScreenId')) {
+			if (!this.model.get('localScreen')) {
 				this.startShareScreen('screen');
 			}
 
@@ -268,7 +268,7 @@
 		},
 
 		shareWindow: function() {
-			if (!this.model.get('sharedScreenId')) {
+			if (!this.model.get('localScreen')) {
 				this.startShareScreen('window');
 			}
 
@@ -276,7 +276,7 @@
 		},
 
 		showScreen: function() {
-			if (this.model.get('sharedScreenId')) {
+			if (this.model.get('localScreen')) {
 				this._sharedScreens.switchScreenToId(this.model.get('sharedScreenId'));
 			}
 
@@ -330,8 +330,8 @@
 			}.bind(this));
 		},
 
-		_setSharedScreenId: function(model, sharedScreenId) {
-			if (sharedScreenId) {
+		_setLocalScreen: function(model, localScreen) {
+			if (localScreen) {
 				this.getUI('screensharingButton').attr('data-original-title', t('spreed', 'Screensharing options'))
 					.removeClass('screensharing-disabled icon-screen-off')
 					.addClass('icon-screen');
