@@ -86,7 +86,6 @@
 				localCallParticipantModel: this._localCallParticipantModel,
 				localMediaModel: this._localMediaModel,
 				collection: this._callParticipantCollection,
-				sharedScreens: OCA.SpreedMe.sharedScreens,
 			});
 
 			this._mediaControlsView = this._callView._localVideoView._mediaControlsView;
@@ -161,7 +160,6 @@
 				OCA.SpreedMe.initWebRTC(this);
 				this._localCallParticipantModel.setWebRtc(OCA.SpreedMe.webrtc);
 				this._localMediaModel.setWebRtc(OCA.SpreedMe.webrtc);
-				this._mediaControlsView.setSharedScreens(OCA.SpreedMe.sharedScreens);
 			}
 
 			if (!OCA.SpreedMe.webrtc.capabilities.supportRTCPeerConnection) {

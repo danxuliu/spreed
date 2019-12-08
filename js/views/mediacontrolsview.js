@@ -91,11 +91,6 @@
 
 		initialize: function(options) {
 			this._localCallParticipantModel = options.localCallParticipantModel;
-			this._sharedScreens = options.sharedScreens;
-		},
-
-		setSharedScreens: function(sharedScreens) {
-			this._sharedScreens = sharedScreens;
 		},
 
 		onRender: function() {
@@ -278,7 +273,7 @@
 
 		showScreen: function() {
 			if (this.model.get('localScreen')) {
-				this._sharedScreens.switchScreenToId(this._localCallParticipantModel.get('peerId'));
+				this.triggerMethod('switchScreenToId', this._localCallParticipantModel.get('peerId'));
 			}
 
 			this.getUI('screensharingMenu').toggleClass('open', false);

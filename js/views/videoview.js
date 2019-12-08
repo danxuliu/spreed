@@ -383,7 +383,7 @@
 
 		switchToScreen: function() {
 			if (!this._screenVisible) {
-				OCA.SpreedMe.sharedScreens.switchScreenToId(this.model.get('peerId'));
+				this.triggerMethod('switchScreenToId', this.model.get('peerId'));
 			}
 
 			this.getUI('screenSharingIndicator').tooltip('hide');

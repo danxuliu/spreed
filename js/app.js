@@ -670,7 +670,6 @@
 				localCallParticipantModel: this._localCallParticipantModel,
 				localMediaModel: this._localMediaModel,
 				collection: this._callParticipantCollection,
-				sharedScreens: OCA.SpreedMe.sharedScreens,
 			});
 			// Ensure that the call view is not visible in the initial page.
 			this._callView.$el.hide();
@@ -791,7 +790,6 @@
 				OCA.SpreedMe.initWebRTC(this);
 				this._localCallParticipantModel.setWebRtc(OCA.SpreedMe.webrtc);
 				this._localMediaModel.setWebRtc(OCA.SpreedMe.webrtc);
-				this._mediaControlsView.setSharedScreens(OCA.SpreedMe.sharedScreens);
 			}
 
 			if (!OCA.SpreedMe.webrtc.capabilities.supportRTCPeerConnection) {

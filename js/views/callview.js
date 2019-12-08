@@ -60,13 +60,16 @@
 			'change:screen': '_handleScreenChange',
 		},
 
+		childViewEvents: {
+			'switchScreenToId': '_switchScreenToId',
+		},
+
 		initialize: function(options) {
 			this._localCallParticipantModel = options.localCallParticipantModel;
 
 			this._localVideoView = new OCA.Talk.Views.LocalVideoView({
 				localCallParticipantModel: options.localCallParticipantModel,
 				localMediaModel: options.localMediaModel,
-				sharedScreens: options.sharedScreens,
 			});
 
 			this.listenTo(options.localMediaModel, 'change:localScreen', this._handleLocalScreenChange);
@@ -283,6 +286,10 @@
 
 		getScreenView: function(id) {
 			return this._screenViews[id];
+		},
+
+		_switchScreenToId: function(id) {
+			OCA.SpreedMe.sharedScreens.switchScreenToId(id);
 		},
 
 		_removeScreenView: function(id) {

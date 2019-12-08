@@ -55,6 +55,11 @@
 			'mediaControls': '@ui.nameIndicator',
 		},
 
+		childViewTriggers: {
+			// Propagate event.
+			'switchScreenToId': 'switchScreenToId',
+		},
+
 		initialize: function(options) {
 			this._localCallParticipantModel = options.localCallParticipantModel;
 			this._localMediaModel = options.localMediaModel;
@@ -68,7 +73,6 @@
 			this._mediaControlsView = new OCA.SpreedMe.Views.MediaControlsView({
 				model: options.localMediaModel,
 				localCallParticipantModel: options.localCallParticipantModel,
-				sharedScreens: options.sharedScreens,
 			});
 		},
 
