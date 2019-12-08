@@ -30,6 +30,7 @@
 	var LocalCallParticipantModel = Backbone.Model.extend({
 
 		defaults: {
+			peerId: null,
 			guestName: null,
 		},
 
@@ -40,9 +41,8 @@
 		setWebRtc: function(webRtc) {
 			this._webRtc = webRtc;
 
-			// The webRtc object is assumed to be brand new, so the default
-			// state matches the state of the object.
-			this.set(this.defaults);
+			this.set('peerId', this._webRtc.connection.getSessionid());
+			this.set('guestName', null);
 		},
 
 		setGuestName: function(guestName) {

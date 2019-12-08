@@ -38,7 +38,6 @@
 			videoAvailable: false,
 			videoEnabled: false,
 			localScreen: null,
-			sharedScreenId: null,
 		},
 
 		sync: function(method) {
@@ -236,16 +235,10 @@
 
 		_handleLocalScreen: function(screen) {
 			this.set('localScreen', screen);
-
-			// The "localScreen" event only provides the stream with the screen;
-			// the ID of the session used to identify the screen needs to be got
-			// from the signaling.
-			this.set('sharedScreenId', this._webRtc.connection.getSessionid());
 		},
 
 		_handleLocalScreenStopped: function() {
 			this.set('localScreen', null);
-			this.set('sharedScreenId', null);
 		},
 
 		enableAudio: function() {
