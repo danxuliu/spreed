@@ -385,7 +385,6 @@ var spreedPeerConnectionTable = [];
 			// "Unified Plan" with SimpleWebRTC yet.
 			webrtc.webrtc.config.peerConnectionConfig.sdpSemantics = 'plan-b';
 		}
-		OCA.SpreedMe.webrtc = webrtc;
 
 		signaling.on('pullMessagesStoppedOnFail', function() {
 			// Force leaving the call in WebRTC; when pulling messages stops due
@@ -886,6 +885,8 @@ var spreedPeerConnectionTable = [];
 				});
 			}
 		});
+
+		return webrtc;
 	}
 
 	OCA.SpreedMe.initWebRTC = initWebRTC;

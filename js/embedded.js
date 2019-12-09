@@ -156,13 +156,13 @@
 		},
 
 		setupWebRTC: function() {
-			if (!OCA.SpreedMe.webrtc) {
-				OCA.SpreedMe.initWebRTC(this);
-				this._localCallParticipantModel.setWebRtc(OCA.SpreedMe.webrtc);
-				this._localMediaModel.setWebRtc(OCA.SpreedMe.webrtc);
+			if (!this._webRtc) {
+				this._webRtc = OCA.SpreedMe.initWebRTC(this);
+				this._localCallParticipantModel.setWebRtc(this._webRtc);
+				this._localMediaModel.setWebRtc(this._webRtc);
 			}
 
-			if (!OCA.SpreedMe.webrtc.capabilities.supportRTCPeerConnection) {
+			if (!this._webRtc.capabilities.supportRTCPeerConnection) {
 				localMediaChannel.trigger('webRtcNotSupported');
 			} else {
 				localMediaChannel.trigger('waitingForPermissions');
@@ -178,7 +178,7 @@
 				this.signaling.setSendVideoIfAvailable(true);
 			}
 
-			OCA.SpreedMe.webrtc.startMedia(this.token);
+			this._webRtc.startMedia(this.token);
 		},
 		startLocalMedia: function(configuration) {
 			if (this.callbackAfterMedia) {
@@ -194,7 +194,7 @@
 				this.callbackAfterMedia = null;
 			}
 
-			if (OCA.SpreedMe.webrtc.capabilities.supportRTCPeerConnection) {
+			if (this._webRtc.capabilities.supportRTCPeerConnection) {
 				localMediaChannel.trigger('startWithoutLocalMedia');
 			}
 		},
@@ -209,7 +209,7 @@
 					request.setRequestHeader('Accept', 'application/json');
 				},
 				success: function() {
-					if (OCA.SpreedMe.webrtc) {
+					if (this._webRtc) {
 						this._localCallParticipantModel.setGuestName(name);
 					}
 				}.bind(this)
