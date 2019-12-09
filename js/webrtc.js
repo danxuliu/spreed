@@ -274,19 +274,15 @@ var spreedPeerConnectionTable = [];
 		}
 	}
 
-	/**
-	 * @param {OCA.Talk.Application} app
-	 */
-	function initWebRTC(app) {
+	function initWebRTC(signaling, _callParticipantCollection) {
 		Array.prototype.diff = function(a) {
 			return this.filter(function(i) {
 				return a.indexOf(i) < 0;
 			});
 		};
 
-		callParticipantCollection = app._callParticipantCollection;
+		callParticipantCollection = _callParticipantCollection;
 
-		var signaling = app.signaling;
 		signaling.on('usersLeft', function(users) {
 			users.forEach(function(user) {
 				delete usersInCallMapping[user];
