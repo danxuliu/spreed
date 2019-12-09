@@ -288,6 +288,18 @@
 			return this._screenViews[id];
 		},
 
+		setScreenVisible: function(id, visible) {
+			if (this._screenViews[id] && visible) {
+				this._screenViews[id].$el.removeClass("hidden");
+			} else if (this._screenViews[id] && !visible) {
+				this._screenViews[id].$el.addClass("hidden");
+			}
+
+			if (this._videoViews[id]) {
+				this._videoViews[id].setScreenVisible(visible);
+			}
+		},
+
 		_switchScreenToId: function(id) {
 			OCA.SpreedMe.sharedScreens.switchScreenToId(id);
 		},

@@ -575,33 +575,8 @@ var spreedPeerConnectionTable = [];
 					return;
 				}
 
-				for (var currentId in spreedListofSharedScreens) {
-					// skip loop if the property is from prototype
-					if (!spreedListofSharedScreens.hasOwnProperty(currentId)) {
-						continue;
-					}
-
-					// skip non-string ids
-					if (!(typeof currentId === 'string' || currentId instanceof String)) {
-						continue;
-					}
-
-					screenView = OCA.SpreedMe.app._callView.getScreenView(currentId);
-					if (currentId === id) {
-						screenView.$el.removeClass('hidden');
-					} else {
-						screenView.$el.addClass('hidden');
-					}
-				}
-
-				var oldVideoView = OCA.SpreedMe.app._callView.getVideoView(latestScreenId);
-				if (oldVideoView) {
-					oldVideoView.setScreenVisible(false);
-				}
-				var videoView = OCA.SpreedMe.app._callView.getVideoView(id);
-				if (videoView) {
-					videoView.setScreenVisible(true);
-				}
+				OCA.SpreedMe.app._callView.setScreenVisible(latestScreenId, false);
+				OCA.SpreedMe.app._callView.setScreenVisible(id, true);
 
 				latestScreenId = id;
 			},
