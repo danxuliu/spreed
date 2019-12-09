@@ -86,7 +86,7 @@ var spreedPeerConnectionTable = [];
 		}
 
 		if (ownPeer) {
-			OCA.SpreedMe.webrtc.removePeers(ownPeer.id);
+			webrtc.removePeers(ownPeer.id);
 			ownPeer.end();
 		}
 
@@ -146,7 +146,7 @@ var spreedPeerConnectionTable = [];
 			if (!callParticipantModel) {
 				callParticipantModel = callParticipantCollection.add({
 					peerId: sessionId,
-					webRtc: OCA.SpreedMe.webrtc,
+					webRtc: webrtc,
 				});
 			}
 			callParticipantModel.setUserId(userId);
@@ -221,7 +221,7 @@ var spreedPeerConnectionTable = [];
 
 		disconnectedSessionIds.forEach(function(sessionId) {
 			console.log('XXX Remove peer', sessionId);
-			OCA.SpreedMe.webrtc.removePeers(sessionId);
+			webrtc.removePeers(sessionId);
 			callParticipantCollection.remove(sessionId);
 			if (delayedConnectionToPeer[sessionId]) {
 				clearInterval(delayedConnectionToPeer[sessionId]);
@@ -333,7 +333,7 @@ var spreedPeerConnectionTable = [];
 				return;
 			}
 
-			var peers = OCA.SpreedMe.webrtc.webrtc.peers;
+			var peers = webrtc.webrtc.peers;
 			var stalePeer = peers.find(function(peer) {
 				if (peer.sharemyscreen) {
 					return false;
@@ -397,7 +397,7 @@ var spreedPeerConnectionTable = [];
 			webrtc.leaveCall();
 		});
 
-		OCA.SpreedMe.webrtc.startMedia = function (token) {
+		webrtc.startMedia = function (token) {
 			webrtc.joinCall(token);
 		};
 
@@ -408,7 +408,7 @@ var spreedPeerConnectionTable = [];
 				ownPeer.sendDirectly(channel, message, payload);
 				return;
 			}
-			OCA.SpreedMe.webrtc.sendDirectlyToAll(channel, message, payload);
+			webrtc.sendDirectlyToAll(channel, message, payload);
 		};
 
 		// The nick name below the avatar is distributed through the DataChannel
@@ -453,15 +453,15 @@ var spreedPeerConnectionTable = [];
 		function handleIceConnectionStateConnected(peer) {
 			// Send the current information about the video and microphone
 			// state.
-			if (!OCA.SpreedMe.webrtc.webrtc.isVideoEnabled()) {
-				OCA.SpreedMe.webrtc.emit('videoOff');
+			if (!webrtc.webrtc.isVideoEnabled()) {
+				webrtc.emit('videoOff');
 			} else {
-				OCA.SpreedMe.webrtc.emit('videoOn');
+				webrtc.emit('videoOn');
 			}
-			if (!OCA.SpreedMe.webrtc.webrtc.isAudioEnabled()) {
-				OCA.SpreedMe.webrtc.emit('audioOff');
+			if (!webrtc.webrtc.isAudioEnabled()) {
+				webrtc.emit('audioOff');
 			} else {
-				OCA.SpreedMe.webrtc.emit('audioOn');
+				webrtc.emit('audioOn');
 			}
 			if (!OCA.Talk.getCurrentUser()['uid']) {
 				var currentGuestNick = localStorage.getItem("nick");
@@ -565,7 +565,7 @@ var spreedPeerConnectionTable = [];
 			});
 		};
 
-		OCA.SpreedMe.webrtc.on('createdPeer', function (peer) {
+		webrtc.on('createdPeer', function (peer) {
 			console.log('PEER CREATED', peer);
 
 			if (peer.id !== signaling.getSessionid() && !peer.sharemyscreen) {
@@ -575,7 +575,7 @@ var spreedPeerConnectionTable = [];
 				if (!callParticipantModel) {
 					callParticipantModel = callParticipantCollection.add({
 						peerId: peer.id,
-						webRtc: OCA.SpreedMe.webrtc,
+						webRtc: webrtc,
 					});
 				}
 
@@ -613,7 +613,7 @@ var spreedPeerConnectionTable = [];
 					}
 
 					if (statsReport.bytesReceived > 0) {
-						OCA.SpreedMe.webrtc.emit('unmute', {
+						webrtc.emit('unmute', {
 							id: peer.id,
 							name: mediaType
 						});
@@ -661,7 +661,7 @@ var spreedPeerConnectionTable = [];
 			}, 1000);
 		}
 
-		OCA.SpreedMe.webrtc.on('peerStreamAdded', function (peer) {
+		webrtc.on('peerStreamAdded', function (peer) {
 			// With the MCU, a newly subscribed stream might not get the
 			// "audioOn"/"videoOn" messages as they are only sent when
 			// a user starts publishing. Instead wait for initial data
@@ -673,13 +673,13 @@ var spreedPeerConnectionTable = [];
 			startPeerCheckMedia(peer, peer.stream);
 		});
 
-		OCA.SpreedMe.webrtc.on('peerStreamRemoved', function (peer) {
+		webrtc.on('peerStreamRemoved', function (peer) {
 			stopPeerCheckMedia(peer);
 		});
 
 		var forceReconnect = function(signaling, flags) {
 			if (ownPeer) {
-				OCA.SpreedMe.webrtc.removePeers(ownPeer.id);
+				webrtc.removePeers(ownPeer.id);
 				ownPeer.end();
 				ownPeer = null;
 			}
@@ -695,7 +695,7 @@ var spreedPeerConnectionTable = [];
 			signaling.forceReconnect(true, flags);
 		};
 
-		OCA.SpreedMe.webrtc.webrtc.on('videoOn', function () {
+		webrtc.webrtc.on('videoOn', function () {
 			if (signaling.getSendVideoIfAvailable()) {
 				return;
 			}
@@ -710,7 +710,7 @@ var spreedPeerConnectionTable = [];
 			forceReconnect(signaling, flags);
 		});
 
-		OCA.SpreedMe.webrtc.webrtc.on('iceFailed', function (/* peer */) {
+		webrtc.webrtc.on('iceFailed', function (/* peer */) {
 			if (!signaling.hasFeature("mcu")) {
 				// ICE restarts will be handled by "iceConnectionStateChange"
 				// above.
@@ -740,7 +740,7 @@ var spreedPeerConnectionTable = [];
 		// error. It is not possible to detect this except by guessing when some
 		// time passes and the user has not granted nor rejected the media
 		// permissions.
-		OCA.SpreedMe.webrtc.on('localStreamRequested', function () {
+		webrtc.on('localStreamRequested', function () {
 			clearLocalStreamRequestedTimeoutAndHideNotification();
 
 			localStreamRequestedTimeout = setTimeout(function() {
@@ -756,7 +756,7 @@ var spreedPeerConnectionTable = [];
 			}
 		});
 
-		OCA.SpreedMe.webrtc.on('localMediaStarted', function (configuration) {
+		webrtc.on('localMediaStarted', function (configuration) {
 			console.log('localMediaStarted');
 
 			clearLocalStreamRequestedTimeoutAndHideNotification();
@@ -768,7 +768,7 @@ var spreedPeerConnectionTable = [];
 			}
 		});
 
-		OCA.SpreedMe.webrtc.on('localMediaError', function(error) {
+		webrtc.on('localMediaError', function(error) {
 			console.log('Access to microphone & camera failed', error);
 
 			clearLocalStreamRequestedTimeoutAndHideNotification();
@@ -776,14 +776,14 @@ var spreedPeerConnectionTable = [];
 			hasLocalMedia = false;
 			var message;
 			if ((error.name === "NotSupportedError" &&
-					OCA.SpreedMe.webrtc.capabilities.supportRTCPeerConnection) ||
+					webrtc.capabilities.supportRTCPeerConnection) ||
 				(error.name === "NotAllowedError" &&
 					error.message && error.message.indexOf("Only secure origins") !== -1)) {
 				message = t('spreed', 'Access to microphone & camera is only possible with HTTPS');
 				message += ': ' + t('spreed', 'Please move your setup to HTTPS');
 			} else if (error.name === "NotAllowedError") {
 				message = t('spreed', 'Access to microphone & camera was denied');
-			} else if(!OCA.SpreedMe.webrtc.capabilities.support) {
+			} else if(!webrtc.capabilities.support) {
 				console.log('WebRTC not supported');
 
 				message = t('spreed', 'WebRTC is not supported in your browser');
@@ -800,27 +800,27 @@ var spreedPeerConnectionTable = [];
 			});
 		});
 
-		OCA.SpreedMe.webrtc.on('channelOpen', function(channel) {
+		webrtc.on('channelOpen', function(channel) {
 			console.log('%s datachannel is open', channel.label);
 		});
 
-		OCA.SpreedMe.webrtc.on('channelMessage', function (peer, label, data) {
+		webrtc.on('channelMessage', function (peer, label, data) {
 			if (label === 'status') {
 				if(data.type === 'audioOn') {
-					OCA.SpreedMe.webrtc.emit('unmute', {id: peer.id, name:'audio'});
+					webrtc.emit('unmute', {id: peer.id, name:'audio'});
 				} else if(data.type === 'audioOff') {
-					OCA.SpreedMe.webrtc.emit('mute', {id: peer.id, name:'audio'});
+					webrtc.emit('mute', {id: peer.id, name:'audio'});
 				} else if(data.type === 'videoOn') {
-					OCA.SpreedMe.webrtc.emit('unmute', {id: peer.id, name:'video'});
+					webrtc.emit('unmute', {id: peer.id, name:'video'});
 				} else if(data.type === 'videoOff') {
-					OCA.SpreedMe.webrtc.emit('mute', {id: peer.id, name:'video'});
+					webrtc.emit('mute', {id: peer.id, name:'video'});
 				} else if (data.type === 'nickChanged') {
 					var payload = data.payload || '';
 					if (typeof(payload) === 'string') {
-						OCA.SpreedMe.webrtc.emit('nick', {id: peer.id, name:data.payload});
+						webrtc.emit('nick', {id: peer.id, name:data.payload});
 						app._messageCollection.updateGuestName(new Hashes.SHA1().hex(peer.id), data.payload);
 					} else {
-						OCA.SpreedMe.webrtc.emit('nick', {id: peer.id, name: payload.name, userid: payload.userid});
+						webrtc.emit('nick', {id: peer.id, name: payload.name, userid: payload.userid});
 					}
 				}
 			} else if (label === 'hark') {
@@ -830,30 +830,30 @@ var spreedPeerConnectionTable = [];
 			}
 		});
 
-		OCA.SpreedMe.webrtc.on('speaking', function(){
+		webrtc.on('speaking', function(){
 			sendDataChannelToAll('status', 'speaking');
 		});
 
-		OCA.SpreedMe.webrtc.on('stoppedSpeaking', function(){
+		webrtc.on('stoppedSpeaking', function(){
 			sendDataChannelToAll('status', 'stoppedSpeaking');
 		});
 
 		// Send the audio on and off events via data channel
-		OCA.SpreedMe.webrtc.on('audioOn', function() {
+		webrtc.on('audioOn', function() {
 			sendDataChannelToAll('status', 'audioOn');
 		});
-		OCA.SpreedMe.webrtc.on('audioOff', function() {
+		webrtc.on('audioOff', function() {
 			sendDataChannelToAll('status', 'audioOff');
 		});
-		OCA.SpreedMe.webrtc.on('videoOn', function() {
+		webrtc.on('videoOn', function() {
 			sendDataChannelToAll('status', 'videoOn');
 		});
-		OCA.SpreedMe.webrtc.on('videoOff', function() {
+		webrtc.on('videoOff', function() {
 			sendDataChannelToAll('status', 'videoOff');
 		});
 
 		// Local screen added.
-		OCA.SpreedMe.webrtc.on('localScreenAdded', function(video) {
+		webrtc.on('localScreenAdded', function(video) {
 			var currentSessionId = signaling.getSessionid();
 			for (var sessionId in usersInCallMapping) {
 				if (!usersInCallMapping.hasOwnProperty(sessionId)) {
@@ -870,7 +870,7 @@ var spreedPeerConnectionTable = [];
 			}
 		});
 
-		OCA.SpreedMe.webrtc.on('localScreenStopped', function() {
+		webrtc.on('localScreenStopped', function() {
 			if (!signaling.hasFeature('mcu')) {
 				// Only need to notify clients here if running with MCU.
 				// Otherwise SimpleWebRTC will notify each client on its own.
