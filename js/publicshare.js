@@ -70,7 +70,7 @@
 				el: '#call-container-wrapper > #emptycontent'
 			});
 
-			OCA.SpreedMe.app._mediaControlsView.hideScreensharingButton();
+			OCA.SpreedMe.app._localMediaControls.hideScreenSharingButton();
 
 			this._$roomNotJoinedMessage = $(
 				'<div class="emptycontent room-not-joined">' +

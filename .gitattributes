@@ -1,5 +1,7 @@
 /js/admin/*.js binary
 /js/admin/*.js.map binary
+/js/callview.js binary
+/js/callview.js.map binary
 /js/collections.js binary
 /js/collections.js.map binary
 /js/main.js binary

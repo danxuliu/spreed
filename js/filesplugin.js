@@ -146,7 +146,7 @@
 
 		render: function() {
 			// Detach the CallView before emptying its ancestor to prevent
-			// internal listeners in MediaControlsView from becoming unusable.
+			// internal listeners in LocalMediaControls from becoming unusable.
 			OCA.SpreedMe.app._callView.$el.detach();
 
 			this.$el.empty();
@@ -169,7 +169,7 @@
 				el: '#call-container-wrapper > #emptycontent',
 			});
 
-			OCA.SpreedMe.app._mediaControlsView.hideScreensharingButton();
+			OCA.SpreedMe.app._localMediaControls.hideScreenSharingButton();
 		},
 
 		_updateCallContainer: function() {

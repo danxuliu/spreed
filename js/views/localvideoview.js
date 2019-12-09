@@ -52,12 +52,7 @@
 		},
 
 		regions: {
-			'mediaControls': '@ui.nameIndicator',
-		},
-
-		childViewTriggers: {
-			// Propagate event.
-			'switchScreenToId': 'switchScreenToId',
+			'localMediaControls': '@ui.nameIndicator',
 		},
 
 		initialize: function(options) {
@@ -70,10 +65,18 @@
 			this.listenTo(this._localMediaModel, 'change:speaking', this._setSpeaking);
 			this.listenTo(this._localMediaModel, 'change:videoEnabled', this._setVideoEnabled);
 
-			this._mediaControlsView = new OCA.SpreedMe.Views.MediaControlsView({
-				model: options.localMediaModel,
-				localCallParticipantModel: options.localCallParticipantModel,
+			this._localMediaControlsWrapper = new OCA.Talk.Views.VueWrapper({
+				vm: new OCA.Talk.Views.Vue.LocalMediaControls({
+					propsData: {
+						model: this._localMediaModel,
+						localCallParticipantModel: this._localCallParticipantModel
+					}
+				})
 			});
+			this._localMediaControlsWrapper._vm.$on('switchScreenToId', function(id) {
+				// Propagate event.
+				this.triggerMethod('switchScreenToId', id);
+			}.bind(this));
 		},
 
 		onBeforeRender: function() {
@@ -86,13 +89,13 @@
 			// "allowMissingEl" is needed for the first time this view is
 			// rendered, as the element of the region does not exist yet at that
 			// time and without that option the call would fail otherwise.
-			this.getRegion('mediaControls').reset({ preventDestroy: true, allowMissingEl: true });
+			this.getRegion('localMediaControls').reset({ preventDestroy: true, allowMissingEl: true });
 		},
 
 		onRender: function() {
 			// Attach the child views again (or for the first time) after the
 			// template has been rendered.
-			this.showChildView('mediaControls', this._mediaControlsView, { replaceElement: true } );
+			this.showChildView('localMediaControls', this._localMediaControlsWrapper, { replaceElement: true } );
 
 			// Match current model state.
 			this._setLocalStream(this._localMediaModel, this._localMediaModel.get('localStream'));

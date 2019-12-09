@@ -35,6 +35,8 @@
 			audioEnabled: false,
 			speaking: false,
 			speakingWhileMuted: false,
+			currentVolume: -100,
+			volumeThreshold: -100,
 			videoAvailable: false,
 			videoEnabled: false,
 			localScreen: null,
@@ -177,12 +179,13 @@
 			this.set('audioEnabled', false);
 		},
 
-		_handleVolumeChange: function(currentVolume, threshold) {
+		_handleVolumeChange: function(currentVolume, volumeThreshold) {
 			if (!this.get('audioAvailable')) {
 				return;
 			}
 
-			this.trigger('change:volume', currentVolume, threshold);
+			this.set('currentVolume', currentVolume);
+			this.set('volumeThreshold', volumeThreshold);
 		},
 
 		_handleSpeaking: function() {

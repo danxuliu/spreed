@@ -249,11 +249,11 @@
 				switch (key) {
 					case 86: // 'v'
 						event.preventDefault();
-						this._mediaControlsView.toggleVideo();
+						this._localMediaControls.toggleVideo();
 						break;
 					case 77: // 'm'
 						event.preventDefault();
-						this._mediaControlsView.toggleAudio();
+						this._localMediaControls.toggleAudio();
 						break;
 					case 70: // 'f'
 						event.preventDefault();
@@ -675,9 +675,9 @@
 			this._callView.$el.hide();
 			this._callView.$el.insertBefore(this._emptyContentView.$el);
 
-			this._mediaControlsView = this._callView._localVideoView._mediaControlsView;
+			this._localMediaControls = this._callView._localVideoView._localMediaControlsWrapper._vm.$refs.localMediaControls;
 
-			this._speakingWhileMutedWarner = new OCA.Talk.Views.SpeakingWhileMutedWarner(this._localMediaModel, this._mediaControlsView);
+			this._speakingWhileMutedWarner = new OCA.Talk.Views.SpeakingWhileMutedWarner(this._localMediaModel, this._localMediaControls);
 
 			$(document).on('click', this.onDocumentClick);
 			OC.Util.History.addOnPopStateHandler(_.bind(this._onPopState, this));

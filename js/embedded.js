@@ -88,9 +88,9 @@
 				collection: this._callParticipantCollection,
 			});
 
-			this._mediaControlsView = this._callView._localVideoView._mediaControlsView;
+			this._localMediaControls = this._callView._localVideoView._localMediaControlsWrapper._vm.$refs.localMediaControls;
 
-			this._speakingWhileMutedWarner = new OCA.Talk.Views.SpeakingWhileMutedWarner(this._localMediaModel, this._mediaControlsView);
+			this._speakingWhileMutedWarner = new OCA.Talk.Views.SpeakingWhileMutedWarner(this._localMediaModel, this._localMediaControls);
 		},
 		onStart: function() {
 			this.signaling = OCA.Talk.Signaling.createConnection();

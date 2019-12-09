@@ -49,6 +49,8 @@ npm-update:
 clean:
 	rm -f js/admin/*.js
 	rm -f js/admin/*.js.map
+	rm -f js/callview.js
+	rm -f js/callview.js.map
 	rm -f js/collections.js
 	rm -f js/collections.js.map
 	rm -f js/main.js

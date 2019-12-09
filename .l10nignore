@@ -1,6 +1,8 @@
 js/admin/
 js/vendor/
 js/tests/
+js/callview.js
+js/callview.js.map
 js/collections.js
 js/collections.js.map
 js/main.js
