@@ -759,8 +759,6 @@ var spreedPeerConnectionTable = [];
 
 			clearLocalStreamRequestedTimeoutAndHideNotification();
 
-			app.startLocalMedia(configuration);
-
 			if (signaling.hasFeature("mcu")) {
 				checkStartPublishOwnPeer(signaling);
 			}
@@ -790,7 +788,6 @@ var spreedPeerConnectionTable = [];
 				console.log('Error while accessing microphone & camera: ', error.message || error.name);
 			}
 
-			app.startWithoutLocalMedia({audio: false, video: false});
 			OC.Notification.show(message, {
 				type: 'error',
 				timeout: 15,
@@ -815,7 +812,6 @@ var spreedPeerConnectionTable = [];
 					var payload = data.payload || '';
 					if (typeof(payload) === 'string') {
 						webrtc.emit('nick', {id: peer.id, name:data.payload});
-						app._messageCollection.updateGuestName(new Hashes.SHA1().hex(peer.id), data.payload);
 					} else {
 						webrtc.emit('nick', {id: peer.id, name: payload.name, userid: payload.userid});
 					}

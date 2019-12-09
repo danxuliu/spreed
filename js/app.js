@@ -788,6 +788,17 @@
 		setupWebRTC: function() {
 			if (!this._webRtc) {
 				this._webRtc = OCA.SpreedMe.initWebRTC(this);
+				this._webRtc.on('localMediaStarted', function(configuration) {
+					this.startLocalMedia(configuration);
+				}.bind(this));
+				this._webRtc.on('localMediaError', function() {
+					this.startWithoutLocalMedia();
+				}.bind(this));
+				this._webRtc.on('nick', function(data) {
+					if (!data.userid) {
+						this._messageCollection.updateGuestName(new Hashes.SHA1().hex(data.id), data.name);
+					}
+				}.bind(this));
 				this._localCallParticipantModel.setWebRtc(this._webRtc);
 				this._localMediaModel.setWebRtc(this._webRtc);
 			}
