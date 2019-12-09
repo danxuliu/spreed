@@ -53,7 +53,7 @@ var spreedPeerConnectionTable = [];
 			// audio/video peers. Not possible right now as there is no way
 			// for clients to know that screensharing is active and an offer
 			// from the MCU should be requested.
-			webrtc.connection.sendOffer(sessionId, "screen");
+			signaling.sendOffer(sessionId, "screen");
 		} else if (!useMcu) {
 			var screenPeers = webrtc.webrtc.getPeers(sessionId, 'screen');
 			var screenPeerSharedTo = screenPeers.find(function(screenPeer) {
@@ -178,12 +178,12 @@ var spreedPeerConnectionTable = [];
 			if (!webrtc.webrtc.getPeers(sessionId, 'video').length) {
 				if (useMcu) {
 					// TODO(jojo): Already create peer object to avoid duplicate offers.
-					webrtc.connection.requestOffer(user, "video");
+					signaling.requestOffer(user, "video");
 
 					delayedConnectionToPeer[user.sessionId] = setInterval(function() {
 						console.log('No offer received for new peer, request offer again');
 
-						webrtc.connection.requestOffer(user, 'video');
+						signaling.requestOffer(user, 'video');
 					}, 10000);
 				} else if (userHasStreams(selfInCall) && (!userHasStreams(user) || sessionId < currentSessionId)) {
 					// To avoid overloading the user joining a room (who previously called
@@ -404,8 +404,7 @@ var spreedPeerConnectionTable = [];
 		var sendDataChannelToAll = function(channel, message, payload) {
 			// If running with MCU, the message must be sent through the
 			// publishing peer and will be distributed by the MCU to subscribers.
-			var conn = OCA.SpreedMe.webrtc.connection;
-			if (ownPeer && conn.hasFeature && conn.hasFeature('mcu')) {
+			if (ownPeer && signaling.hasFeature && signaling.hasFeature('mcu')) {
 				ownPeer.sendDirectly(channel, message, payload);
 				return;
 			}
@@ -569,7 +568,7 @@ var spreedPeerConnectionTable = [];
 		OCA.SpreedMe.webrtc.on('createdPeer', function (peer) {
 			console.log('PEER CREATED', peer);
 
-			if (peer.id !== OCA.SpreedMe.webrtc.connection.getSessionid() && !peer.sharemyscreen) {
+			if (peer.id !== signaling.getSessionid() && !peer.sharemyscreen) {
 				// In some strange cases a Peer can be added before its
 				// participant is found in the list of participants.
 				var callParticipantModel = callParticipantCollection.get(peer.id);
@@ -588,7 +587,7 @@ var spreedPeerConnectionTable = [];
 			}
 
 			if (peer.type === 'video') {
-				if (peer.id === OCA.SpreedMe.webrtc.connection.getSessionid()) {
+				if (peer.id === signaling.getSessionid()) {
 					console.log("Not adding ICE connection state handler for own peer", peer);
 
 					startSendingNick(peer);
