@@ -27,7 +27,6 @@
   "views/collectionsview.js",
   "views/editabletextlabel.js",
   "views/emptycontentview.js",
-  "views/localvideoview.js",
   "views/participantlistview.js",
   "views/participantview.js",
   "views/richobjectstringparser.js",

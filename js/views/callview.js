@@ -67,10 +67,17 @@
 		initialize: function(options) {
 			this._localCallParticipantModel = options.localCallParticipantModel;
 
-			this._localVideoView = new OCA.Talk.Views.LocalVideoView({
-				localCallParticipantModel: options.localCallParticipantModel,
-				localMediaModel: options.localMediaModel,
+			this._localVideoWrapper = new OCA.Talk.Views.VueWrapper({
+				vm: new OCA.Talk.Views.Vue.LocalVideo({
+					propsData: {
+						localCallParticipantModel: options.localCallParticipantModel,
+						localMediaModel: options.localMediaModel,
+					}
+				})
 			});
+			this._localVideoWrapper._vm.$on('switchScreenToId', function(id) {
+				this._switchScreenToId(id);
+			}.bind(this));
 
 			this.listenTo(options.localMediaModel, 'change:localScreen', this._handleLocalScreenChange);
 
@@ -103,7 +110,7 @@
 		onRender: function() {
 			// Attach the child views again (or for the first time) after the
 			// template has been rendered.
-			this.showChildView('localVideo', this._localVideoView, { replaceElement: true } );
+			this.showChildView('localVideo', this._localVideoWrapper, { replaceElement: true } );
 
 			this._updateContainerState();
 		},

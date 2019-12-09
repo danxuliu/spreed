@@ -99,12 +99,18 @@
 		width: 100%;
 	}
 
+	.videoContainer .avatar-container .avatardiv--unknown {
+		// Force grey background for guest avatars
+		background-color: #b9b9b9 !important;
+	}
+
 	/* Text avatars need to be forced to 128px, as imageplaceholder() overrides
 	 * the given size with the actual height of the element it was called on, so
 	 * the text avatar may have any hardcoded height. Note that this does not
 	 * apply to regular image avatars, as in that case they are always requested
 	 * with a size of 128px. */
-	.videoContainer .avatar-container .avatar {
+	.videoContainer .avatar-container .avatar,
+	.videoContainer .avatar-container .avatardiv {
 		width: 128px !important;
 		height: 128px !important;
 		line-height: 128px !important;
@@ -112,7 +118,9 @@
 		font-size: 70.4px !important;
 	}
 
-	.videoContainer .avatar-container .avatar {
+	.videoContainer .avatar-container .avatar,
+	.videoContainer .avatar-container .avatardiv {
+		display: block;
 		margin-left: auto;
 		margin-right: auto;
 	}

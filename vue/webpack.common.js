@@ -11,7 +11,7 @@ module.exports = {
 			path.join(__dirname, 'src', 'lobbytimerpicker.js'),
 		],
 		"callview": [
-			path.join(__dirname, 'src', 'LocalMediaControls.js'),
+			path.join(__dirname, 'src', 'LocalVideo.js'),
 		],
 		"admin/allowed-groups": path.join(__dirname, 'src', 'AllowedGroupsSettings.js'),
 		"admin/commands": path.join(__dirname, 'src', 'CommandsSettings.js'),

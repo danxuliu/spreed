@@ -126,7 +126,9 @@
 /* The avatars are requested with a size of 128px, so reduce it to not overlap
  * too much the promoted video */
 .talkCallInfoView #call-container #videos .videoContainer:not(.promoted) .avatar,
-.talkCallInfoView #call-container #videos .videoContainer:not(.promoted) .avatar img {
+.talkCallInfoView #call-container #videos .videoContainer:not(.promoted) .avatar img,
+.talkCallInfoView #call-container #videos .videoContainer:not(.promoted) .avatardiv,
+.talkCallInfoView #call-container #videos .videoContainer:not(.promoted) .avatardiv img {
 	width: 64px !important;
 	height: 64px !important;
 	line-height: 64px !important;
@@ -139,7 +141,8 @@
  * on, so the text avatar may have a hardcoded height of 64px. Note that this
  * does not apply to regular image avatars, as in that case they are always
  * requested with a size of 128px. */
-.talkCallInfoView #call-container #videos .videoContainer.promoted .avatar {
+.talkCallInfoView #call-container #videos .videoContainer.promoted .avatar,
+.talkCallInfoView #call-container #videos .videoContainer.promoted .avatardiv {
 	width: 128px !important;
 	height: 128px !important;
 	line-height: 128px !important;

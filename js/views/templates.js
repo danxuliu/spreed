@@ -265,9 +265,6 @@ templates['editabletextlabel'] = template({"1":function(container,depth0,helpers
     + "</div>\n"
     + ((stack1 = helpers["if"].call(alias1,(depth0 != null ? depth0.editionEnabled : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "");
 },"useData":true});
-templates['localvideoview'] = template({"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-    return "<video id=\"localVideo\"></video>\n<div class=\"avatar-container hidden\">\n	<div class=\"avatar\"></div>\n</div>\n<div class=\"nameIndicator\"></div>\n";
-},"useData":true});
 templates['participantlistview'] = template({"1":function(container,depth0,helpers,partials,data) {
     return "currentUser";
 },"3":function(container,depth0,helpers,partials,data) {

@@ -20,7 +20,7 @@
  */
 
 import Vue from 'vue'
-import LocalMediaControls from './components/Call/LocalMediaControls'
+import LocalVideo from './components/Call/LocalVideo'
 
 (function(OCA) {
 
@@ -31,12 +31,12 @@ import LocalMediaControls from './components/Call/LocalMediaControls'
 	OCA.Talk.Views = Object.assign({}, OCA.Talk.Views)
 	OCA.Talk.Views.Vue = Object.assign({}, OCA.Talk.Views.Vue)
 
-	OCA.Talk.Views.Vue.LocalMediaControls = Vue.extend({
+	OCA.Talk.Views.Vue.LocalVideo = Vue.extend({
 		components: {
-			LocalMediaControls
+			LocalVideo
 		},
 		props: {
-			model: {
+			localMediaModel: {
 				type: Object,
 				required: true
 			},
@@ -46,10 +46,10 @@ import LocalMediaControls from './components/Call/LocalMediaControls'
 			}
 		},
 		render: function(createElement) {
-			return createElement('LocalMediaControls', {
-				ref: 'localMediaControls',
+			return createElement('LocalVideo', {
+				ref: 'localVideo',
 				props: {
-					model: this.model,
+					localMediaModel: this.localMediaModel,
 					localCallParticipantModel: this.localCallParticipantModel
 				},
 				on: {

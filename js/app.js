@@ -675,7 +675,7 @@
 			this._callView.$el.hide();
 			this._callView.$el.insertBefore(this._emptyContentView.$el);
 
-			this._localMediaControls = this._callView._localVideoView._localMediaControlsWrapper._vm.$refs.localMediaControls;
+			this._localMediaControls = this._callView._localVideoWrapper._vm.$refs.localVideo.$refs.localMediaControls;
 
 			this._speakingWhileMutedWarner = new OCA.Talk.Views.SpeakingWhileMutedWarner(this._localMediaModel, this._localMediaControls);
 

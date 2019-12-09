@@ -23,7 +23,6 @@
   "views/chatview.js",
   "views/editabletextlabel.js",
   "views/emptycontentview.js",
-  "views/localvideoview.js",
   "views/richobjectstringparser.js",
   "views/screenview.js",
   "views/speakingwhilemutedwarner.js",
