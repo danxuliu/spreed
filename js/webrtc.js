@@ -476,8 +476,6 @@ var spreedPeerConnectionTable = [];
 		};
 
 		function handleIceConnectionStateDisconnected(peer) {
-			var signaling = OCA.SpreedMe.webrtc.connection;
-
 			setTimeout(function() {
 				if (peer.pc.iceConnectionState !== 'disconnected') {
 					return;
@@ -504,8 +502,6 @@ var spreedPeerConnectionTable = [];
 		};
 
 		function handleIceConnectionStateFailed(peer) {
-			var signaling = OCA.SpreedMe.webrtc.connection;
-
 			if (!signaling.hasFeature("mcu")) {
 				if (spreedPeerConnectionTable[peer.id] < 5) {
 					if (peer.pc.localDescription.type === 'offer' &&
@@ -671,7 +667,7 @@ var spreedPeerConnectionTable = [];
 			// "audioOn"/"videoOn" messages as they are only sent when
 			// a user starts publishing. Instead wait for initial data
 			// and trigger events locally.
-			if (!OCA.SpreedMe.app.signaling.hasFeature("mcu")) {
+			if (!signaling.hasFeature("mcu")) {
 				return;
 			}
 
@@ -701,7 +697,6 @@ var spreedPeerConnectionTable = [];
 		};
 
 		OCA.SpreedMe.webrtc.webrtc.on('videoOn', function () {
-			var signaling = OCA.SpreedMe.app.signaling;
 			if (signaling.getSendVideoIfAvailable()) {
 				return;
 			}
@@ -717,7 +712,6 @@ var spreedPeerConnectionTable = [];
 		});
 
 		OCA.SpreedMe.webrtc.webrtc.on('iceFailed', function (/* peer */) {
-			var signaling = OCA.SpreedMe.app.signaling;
 			if (!signaling.hasFeature("mcu")) {
 				// ICE restarts will be handled by "iceConnectionStateChange"
 				// above.
@@ -770,7 +764,6 @@ var spreedPeerConnectionTable = [];
 
 			app.startLocalMedia(configuration);
 			hasLocalMedia = true;
-			var signaling = OCA.SpreedMe.app.signaling;
 			if (signaling.hasFeature("mcu")) {
 				checkStartPublishOwnPeer(signaling);
 			}
@@ -862,8 +855,6 @@ var spreedPeerConnectionTable = [];
 
 		// Local screen added.
 		OCA.SpreedMe.webrtc.on('localScreenAdded', function(video) {
-			var signaling = OCA.SpreedMe.app.signaling;
-
 			var currentSessionId = signaling.getSessionid();
 			for (var sessionId in usersInCallMapping) {
 				if (!usersInCallMapping.hasOwnProperty(sessionId)) {
@@ -881,8 +872,6 @@ var spreedPeerConnectionTable = [];
 		});
 
 		OCA.SpreedMe.webrtc.on('localScreenStopped', function() {
-			var signaling = OCA.SpreedMe.app.signaling;
-
 			if (!signaling.hasFeature('mcu')) {
 				// Only need to notify clients here if running with MCU.
 				// Otherwise SimpleWebRTC will notify each client on its own.
