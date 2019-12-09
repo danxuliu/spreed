@@ -401,9 +401,6 @@ var spreedPeerConnectionTable = [];
 			webrtc.joinCall(token);
 		};
 
-		var spreedListofSharedScreens = {};
-		var latestScreenId = null;
-
 		var sendDataChannelToAll = function(channel, message, payload) {
 			// If running with MCU, the message must be sent through the
 			// publishing peer and will be distributed by the MCU to subscribers.
@@ -561,65 +558,6 @@ var spreedPeerConnectionTable = [];
 				clearInterval(peer.nickInterval);
 				peer.nickInterval = null;
 			}
-		};
-
-		OCA.SpreedMe.sharedScreens = {
-			switchScreenToId: function(id) {
-				var screenView = OCA.SpreedMe.app._callView.getScreenView(id);
-				if (!screenView) {
-					console.warn('promote: no screen video found for ID', id);
-					return;
-				}
-
-				if(latestScreenId === id) {
-					return;
-				}
-
-				OCA.SpreedMe.app._callView.setScreenVisible(latestScreenId, false);
-				OCA.SpreedMe.app._callView.setScreenVisible(id, true);
-
-				latestScreenId = id;
-			},
-			add: function(id) {
-				if (!(typeof id === 'string' || id instanceof String)) {
-					return;
-				}
-
-				spreedListofSharedScreens[id] = (new Date()).getTime();
-
-				OCA.SpreedMe.sharedScreens.switchScreenToId(id);
-			},
-			remove: function(id) {
-				if (!(typeof id === 'string' || id instanceof String)) {
-					return;
-				}
-
-				delete spreedListofSharedScreens[id];
-
-				var mostRecentTime = 0,
-					mostRecentId = null;
-				for (var currentId in spreedListofSharedScreens) {
-					// skip loop if the property is from prototype
-					if (!spreedListofSharedScreens.hasOwnProperty(currentId)) {
-						continue;
-					}
-
-					// skip non-string ids
-					if (!(typeof currentId === 'string' || currentId instanceof String)) {
-						continue;
-					}
-
-					var currentTime = spreedListofSharedScreens[currentId];
-					if (currentTime > mostRecentTime) {
-						mostRecentTime = currentTime;
-						mostRecentId = currentId;
-					}
-				}
-
-				if (mostRecentId !== null) {
-					OCA.SpreedMe.sharedScreens.switchScreenToId(mostRecentId);
-				}
-			},
 		};
 
 		OCA.SpreedMe.webrtc.on('createdPeer', function (peer) {

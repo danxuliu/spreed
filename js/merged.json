@@ -20,6 +20,7 @@
   "views/callbutton.js",
   "views/callinfoview.js",
   "views/callview.js",
+  "views/callviewscreens.js",
   "views/callviewspeakers.js",
   "views/chatview.js",
   "views/collectionsview.js",

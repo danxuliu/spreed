@@ -78,6 +78,7 @@
 			this._screenViews = [];
 
 			this._callViewSpeakers = new OCA.Talk.Views.CallViewSpeakers(this);
+			this._callViewScreens = new OCA.Talk.Views.CallViewScreens(this);
 
 			this._remoteParticipantsCount = 0;
 			this._screenSharingActive = false;
@@ -281,7 +282,7 @@
 			this.addRegion('screen-' + id, { el: document.getElementById(screenView.id()), replaceElement: true });
 			this.showChildView('screen-' + id, screenView);
 
-			OCA.SpreedMe.sharedScreens.add(id);
+			this._callViewScreens.add(id);
 		},
 
 		getScreenView: function(id) {
@@ -301,7 +302,7 @@
 		},
 
 		_switchScreenToId: function(id) {
-			OCA.SpreedMe.sharedScreens.switchScreenToId(id);
+			this._callViewScreens.switchScreenToId(id);
 		},
 
 		_removeScreenView: function(id) {
@@ -309,7 +310,7 @@
 				return;
 			}
 
-			OCA.SpreedMe.sharedScreens.remove(id);
+			this._callViewScreens.remove(id);
 
 			var removedRegion = this.removeRegion('screen-' + id);
 			// Remove the dummy target element that was replaced by the view
