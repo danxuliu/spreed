@@ -13,7 +13,6 @@ var spreedPeerConnectionTable = [];
 	var usersInCallMapping = {};
 	var ownPeer = null;
 	var ownScreenPeer = null;
-	var hasLocalMedia = false;
 	var selfInCall = 0;  // OCA.SpreedMe.app.FLAG_DISCONNECTED, not available yet.
 	var delayedConnectionToPeer = [];
 	var callParticipantCollection = null;
@@ -80,7 +79,7 @@ var spreedPeerConnectionTable = [];
 	function checkStartPublishOwnPeer(signaling) {
 		'use strict';
 		var currentSessionId = signaling.getSessionid();
-		if (!hasLocalMedia || webrtc.webrtc.getPeers(currentSessionId, 'video').length) {
+		if (!webrtc.webrtc.localStreams.length || webrtc.webrtc.getPeers(currentSessionId, 'video').length) {
 			// No media yet or already publishing.
 			return;
 		}
@@ -156,7 +155,7 @@ var spreedPeerConnectionTable = [];
 			// other one has no streams there will be no Peer for that other
 			// participant, so a null Peer needs to be explicitly set now.
 			if ((signaling.hasFeature('mcu') && user && !userHasStreams(user)) ||
-					(!signaling.hasFeature('mcu') && user && !userHasStreams(user) && !hasLocalMedia)) {
+					(!signaling.hasFeature('mcu') && user && !userHasStreams(user) && !webrtc.webrtc.localStreams.length)) {
 				callParticipantModel.setPeer(null);
 			}
 
@@ -761,7 +760,7 @@ var spreedPeerConnectionTable = [];
 			clearLocalStreamRequestedTimeoutAndHideNotification();
 
 			app.startLocalMedia(configuration);
-			hasLocalMedia = true;
+
 			if (signaling.hasFeature("mcu")) {
 				checkStartPublishOwnPeer(signaling);
 			}
@@ -772,7 +771,6 @@ var spreedPeerConnectionTable = [];
 
 			clearLocalStreamRequestedTimeoutAndHideNotification();
 
-			hasLocalMedia = false;
 			var message;
 			if ((error.name === "NotSupportedError" &&
 					webrtc.capabilities.supportRTCPeerConnection) ||
