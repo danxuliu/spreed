@@ -234,8 +234,6 @@
 
 /* The avatars are requested with a size of 128px, so reduce it to not overlap
  * too much the promoted video */
-#talk-sidebar #call-container #videos .videoContainer:not(.promoted) .avatar,
-#talk-sidebar #call-container #videos .videoContainer:not(.promoted) .avatar img,
 #talk-sidebar #call-container #videos .videoContainer:not(.promoted) .avatardiv,
 #talk-sidebar #call-container #videos .videoContainer:not(.promoted) .avatardiv img {
 	width: 64px !important;
@@ -250,7 +248,6 @@
  * on, so the text avatar may have a hardcoded height of 64px. Note that this
  * does not apply to regular image avatars, as in that case they are always
  * requested with a size of 128px. */
-#talk-sidebar #call-container #videos .videoContainer.promoted .avatar,
 #talk-sidebar #call-container #videos .videoContainer.promoted .avatardiv {
 	width: 128px !important;
 	height: 128px !important;

@@ -51,11 +51,10 @@
 
 			var oldVideoView = this._callView.getVideoView(this._latestSpeakerId);
 			if (oldVideoView) {
-				oldVideoView.setPromoted(false);
+				oldVideoView.promoted = false;
 			}
 
-			videoView.setPromoted(true);
-			this.updateVideoContainerDummy(id);
+			videoView.promoted = true;
 
 			this._latestSpeakerId = id;
 		},
@@ -63,7 +62,7 @@
 			if (this._latestSpeakerId) {
 				var oldVideoView = this._callView.getVideoView(this._latestSpeakerId);
 				if (oldVideoView) {
-					oldVideoView.setPromoted(false);
+					oldVideoView.promoted = false;
 				}
 
 				this._unpromotedSpeakerId = this._latestSpeakerId;
@@ -76,22 +75,6 @@
 			if (this._unpromotedSpeakerId) {
 				this.switchVideoToId(this._unpromotedSpeakerId);
 				this._unpromotedSpeakerId = null;
-			}
-		},
-		updateVideoContainerDummyIfLatestSpeaker: function(id) {
-			if (this._latestSpeakerId !== id) {
-				return;
-			}
-
-			this.updateVideoContainerDummy(id);
-		},
-		updateVideoContainerDummy: function(id) {
-			this._dummyVideoContainer.remove();
-
-			var videoView = this._callView.getVideoView(id);
-			if (videoView) {
-				this._dummyVideoContainer = videoView.newDummyVideoContainer();
-				videoView.$el.after(this._dummyVideoContainer);
 			}
 		},
 		add: function(id) {

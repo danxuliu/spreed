@@ -70,7 +70,7 @@
 
 	#videos .videoContainer.not-connected {
 		video,
-		.avatar {
+		.avatardiv {
 			opacity: 0.5;
 		}
 	}
@@ -83,7 +83,7 @@
 		box-shadow: 0 0 15px $color-box-shadow;
 	}
 
-	#videos .videoContainer .avatar {
+	#videos .videoContainer .avatardiv {
 		box-shadow: 0 0 15px $color-box-shadow;
 	}
 
@@ -109,7 +109,6 @@
 	 * the text avatar may have any hardcoded height. Note that this does not
 	 * apply to regular image avatars, as in that case they are always requested
 	 * with a size of 128px. */
-	.videoContainer .avatar-container .avatar,
 	.videoContainer .avatar-container .avatardiv {
 		width: 128px !important;
 		height: 128px !important;
@@ -118,7 +117,6 @@
 		font-size: 70.4px !important;
 	}
 
-	.videoContainer .avatar-container .avatar,
 	.videoContainer .avatar-container .avatardiv {
 		display: block;
 		margin-left: auto;

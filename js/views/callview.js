@@ -146,28 +146,66 @@
 				return;
 			}
 
-			var videoView = new OCA.Talk.Views.VideoView({
-				model: callParticipantModel,
+			this._videoViews[callParticipantModel.get('id')] = {
+				promoted: false,
+				videoEnabled: true,
+				screenVisible: false
+			};
+
+			var placeholderVideoWrapper = new OCA.Talk.Views.VueWrapper({
+				vm: new OCA.Talk.Views.Vue.Video({
+					propsData: {
+						placeholderForPromoted: true,
+						model: callParticipantModel,
+						// The attributes can not be passsed individually, as
+						// that would not replace the attributes in the object
+						// with their reactive counterpart.
+						sharedData: this._videoViews[callParticipantModel.get('id')]
+					}
+				})
 			});
-			this._videoViews[callParticipantModel.get('id')] = videoView;
+
+			var placeholderVideoWrapperId = 'placeholder-container_' + callParticipantModel.get('peerId') + '_video_incoming';
+
+			// The new VideoWrapper is prepended to the current videos, so add
+			// the placeholder first.
+			this._addVideoWrapper(placeholderVideoWrapper, placeholderVideoWrapperId, 'placeholder-video-' + callParticipantModel.get('id'));
+
+			var videoWrapper = new OCA.Talk.Views.VueWrapper({
+				vm: new OCA.Talk.Views.Vue.Video({
+					propsData: {
+						model: callParticipantModel,
+						// The attributes can not be passsed individually, as
+						// that would not replace the attributes in the object
+						// with their reactive counterpart.
+						sharedData: this._videoViews[callParticipantModel.get('id')]
+					}
+				})
+			});
+
+			var videoWrapperId = 'container_' + callParticipantModel.get('peerId') + '_video_incoming';
+
+			this._addVideoWrapper(videoWrapper, videoWrapperId, 'video-' + callParticipantModel.get('id'));
 
 			this._updateContainerState();
 
-			this.listenTo(videoView, 'videoContainerDummyOutdated', function() {
-				this._callViewSpeakers.updateVideoContainerDummyIfLatestSpeaker(callParticipantModel.get('id'));
-			});
-
 			this._callViewSpeakers.add(callParticipantModel.get('id'));
+		},
+
+		_addVideoWrapper: function(videoWrapper, videoWrapperId, regionId) {
+			videoWrapper._vm.$on('switchScreenToId', function(id) {
+				this._switchScreenToId(id);
+			}.bind(this));
 
 			// When adding a region and showing a view on it the target element
 			// of the region must exist in the parent view. Therefore, a dummy
 			// target element, which will be replaced with the VideoView itself,
 			// has to be added to the parent view.
-			var dummyElement = '<div id="' + videoView.id() + '"/>';
+			var dummyElement = '<div id="' + videoWrapperId + '"/>';
 			this.getUI('videos').prepend(dummyElement);
 
-			this.addRegion('video-' + callParticipantModel.get('id'), { el: document.getElementById(videoView.id()), replaceElement: true });
-			this.showChildView('video-' + callParticipantModel.get('id'), videoView);
+			this.addRegion(regionId, { el: document.getElementById(videoWrapperId), replaceElement: true });
+			this.showChildView(regionId, videoWrapper);
 		},
 
 		getVideoView: function(id) {
@@ -185,6 +223,11 @@
 			// Remove the dummy target element that was replaced by the view
 			// when it was shown and that is restored back when the region is
 			// removed.
+			if (removedRegion.el.parentNode) {
+				removedRegion.el.parentNode.removeChild(removedRegion.el);
+			}
+
+			removedRegion = this.removeRegion('placeholder-video-' + callParticipantModel.get('id'));
 			if (removedRegion.el.parentNode) {
 				removedRegion.el.parentNode.removeChild(removedRegion.el);
 			}
@@ -304,7 +347,7 @@
 			}
 
 			if (this._videoViews[id]) {
-				this._videoViews[id].setScreenVisible(visible);
+				this._videoViews[id].screenVisible = visible;
 			}
 		},
 

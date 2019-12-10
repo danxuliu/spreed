@@ -12,6 +12,7 @@ module.exports = {
 		],
 		"callview": [
 			path.join(__dirname, 'src', 'LocalVideo.js'),
+			path.join(__dirname, 'src', 'Video.js'),
 		],
 		"admin/allowed-groups": path.join(__dirname, 'src', 'AllowedGroupsSettings.js'),
 		"admin/commands": path.join(__dirname, 'src', 'CommandsSettings.js'),

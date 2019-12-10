@@ -36,7 +36,6 @@
   "views/speakingwhilemutedwarner.js",
   "views/tabview.js",
   "views/templates.js",
-  "views/videoview.js",
   "views/virtuallist.js",
   "views/vuewrapper.js",
   "webrtc.js",
