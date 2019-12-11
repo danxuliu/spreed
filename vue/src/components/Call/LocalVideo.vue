@@ -42,7 +42,7 @@
 
 <script>
 import attachMediaStream from 'attachmediastream'
-import { Avatar } from 'nextcloud-vue'
+import Avatar from 'nextcloud-vue/dist/Components/Avatar'
 import LocalMediaControls from './LocalMediaControls'
 
 export default {

@@ -77,8 +77,8 @@
 </template>
 
 <script>
-import { Tooltip } from 'nextcloud-vue'
 import escapeHtml from 'escape-html'
+import Tooltip from 'nextcloud-vue/dist/Directives/Tooltip'
 
 export default {
 
