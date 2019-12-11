@@ -41,6 +41,7 @@
 </template>
 
 <script>
+import attachMediaStream from 'attachmediastream'
 import { Avatar } from 'nextcloud-vue'
 import LocalMediaControls from './LocalMediaControls'
 
@@ -110,7 +111,7 @@ export default {
 				mirror: true,
 				muted: true
 			}
-			OCA.Talk.Views.attachMediaStream(localStream, this.$refs.video, options)
+			attachMediaStream(localStream, this.$refs.video, options)
 		}
 
 	}

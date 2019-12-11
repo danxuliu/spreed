@@ -66,6 +66,7 @@
 </template>
 
 <script>
+import attachMediaStream from 'attachmediastream'
 import { Avatar, Tooltip } from 'nextcloud-vue'
 
 const ConnectionState = OCA.Talk.Models.CallParticipantModel.ConnectionState
@@ -203,8 +204,8 @@ export default {
 			// element until the video track starts to play; an audio element is
 			// thus needed to play audio when the remote peer starts with the
 			// camera available but disabled.
-			OCA.Talk.Views.attachMediaStream(stream, this.$refs.audio, { audio: true })
-			OCA.Talk.Views.attachMediaStream(stream, this.$refs.video)
+			attachMediaStream(stream, this.$refs.audio, { audio: true })
+			attachMediaStream(stream, this.$refs.video)
 
 			this.$refs.video.muted = true
 

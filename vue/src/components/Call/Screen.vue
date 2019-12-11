@@ -28,6 +28,8 @@
 </template>
 
 <script>
+import attachMediaStream from 'attachmediastream'
+
 export default {
 
 	name: 'Screen',
@@ -101,7 +103,7 @@ export default {
 				return
 			}
 
-			OCA.Talk.Views.attachMediaStream(screen, this.$refs.screen)
+			attachMediaStream(screen, this.$refs.screen)
 		}
 
 	}

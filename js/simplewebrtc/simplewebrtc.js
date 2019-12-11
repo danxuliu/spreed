@@ -451,9 +451,4 @@ SimpleWebRTC.prototype.createRoom = function (name, cb) {
 	}
 };
 
-// Expose attachMediaStream for the JavaScript files outside of the bundle.
-OCA.Talk = OCA.Talk || {};
-OCA.Talk.Views = OCA.Talk.Views || {};
-OCA.Talk.Views.attachMediaStream = attachMediaStream;
-
 module.exports = SimpleWebRTC;
