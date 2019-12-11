@@ -28,7 +28,6 @@
   "views/participantlistview.js",
   "views/participantview.js",
   "views/richobjectstringparser.js",
-  "views/screenview.js",
   "views/sidebarview.js",
   "views/speakingwhilemutedwarner.js",
   "views/tabview.js",

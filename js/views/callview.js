@@ -81,6 +81,7 @@
 
 			this.listenTo(options.localMediaModel, 'change:localScreen', this._handleLocalScreenChange);
 
+			this._sharedData = [];
 			this._videoViews = [];
 			this._screenViews = [];
 
@@ -141,16 +142,22 @@
 			}
 		},
 
+		getSharedData: function(id) {
+			return this._sharedData[id];
+		},
+
 		_addVideoView: function(callParticipantModel) {
 			if (this._videoViews[callParticipantModel.get('id')]) {
 				return;
 			}
 
-			this._videoViews[callParticipantModel.get('id')] = {
-				promoted: false,
-				videoEnabled: true,
-				screenVisible: false
-			};
+			if (!this._sharedData[callParticipantModel.get('id')]) {
+				this._sharedData[callParticipantModel.get('id')] = {
+					promoted: false,
+					videoEnabled: true,
+					screenVisible: false
+				};
+			}
 
 			var placeholderVideoWrapper = new OCA.Talk.Views.VueWrapper({
 				vm: new OCA.Talk.Views.Vue.Video({
@@ -160,7 +167,7 @@
 						// The attributes can not be passsed individually, as
 						// that would not replace the attributes in the object
 						// with their reactive counterpart.
-						sharedData: this._videoViews[callParticipantModel.get('id')]
+						sharedData: this._sharedData[callParticipantModel.get('id')]
 					}
 				})
 			});
@@ -178,10 +185,11 @@
 						// The attributes can not be passsed individually, as
 						// that would not replace the attributes in the object
 						// with their reactive counterpart.
-						sharedData: this._videoViews[callParticipantModel.get('id')]
+						sharedData: this._sharedData[callParticipantModel.get('id')]
 					}
 				})
 			});
+			this._videoViews[callParticipantModel.get('id')] = videoWrapper;
 
 			var videoWrapperId = 'container_' + callParticipantModel.get('peerId') + '_video_incoming';
 
@@ -234,6 +242,10 @@
 
 			delete this._videoViews[callParticipantModel.get('id')];
 
+			if (!this._screenViews[callParticipantModel.get('id')]) {
+				delete this._sharedData[callParticipantModel.get('id')];
+			}
+
 			this._updateContainerState();
 		},
 
@@ -268,12 +280,27 @@
 				return;
 			}
 
-			var screenView = new OCA.Talk.Views.ScreenView({
-				localMediaModel: null,
-				callParticipantModel: callParticipantModel,
+			if (!this._sharedData[callParticipantModel.get('id')]) {
+				this._sharedData[callParticipantModel.get('id')] = {
+					promoted: false,
+					videoEnabled: true,
+					screenVisible: false
+				};
+			}
+
+			var screenWrapper = new OCA.Talk.Views.VueWrapper({
+				vm: new OCA.Talk.Views.Vue.Screen({
+					propsData: {
+						localMediaModel: null,
+						callParticipantModel: callParticipantModel,
+						sharedData: this._sharedData[callParticipantModel.get('id')]
+					}
+				})
 			});
 
-			this._addScreenView(id, screenView);
+			var screenWrapperId = 'container_' + callParticipantModel.get('peerId') + '_screen_incoming';
+
+			this._addScreenView(id, screenWrapper, screenWrapperId);
 		},
 
 		_handleLocalScreenChange: function(localMediaModel, localScreen) {
@@ -285,12 +312,25 @@
 				return;
 			}
 
-			var screenView = new OCA.Talk.Views.ScreenView({
-				localMediaModel: localMediaModel,
-				callParticipantModel: null,
+			this._sharedData[id] = {
+				promoted: false,
+				videoEnabled: true,
+				screenVisible: false
+			};
+
+			var screenWrapper = new OCA.Talk.Views.VueWrapper({
+				vm: new OCA.Talk.Views.Vue.Screen({
+					propsData: {
+						localMediaModel: localMediaModel,
+						callParticipantModel: null,
+						sharedData: this._sharedData[id]
+					}
+				})
 			});
 
-			this._addScreenView(id, screenView);
+			var screenWrapperId = 'localScreenContainer';
+
+			this._addScreenView(id, screenWrapper, screenWrapperId);
 		},
 
 		isScreenSharingActive: function() {
@@ -313,7 +353,7 @@
 			this._setScreenSharingActive(true);
 		},
 
-		_addScreenView: function(id, screenView) {
+		_addScreenView: function(id, screenView, screenViewId) {
 			if (this._screenViews[id]) {
 				return;
 			}
@@ -326,10 +366,10 @@
 			// of the region must exist in the parent view. Therefore, a dummy
 			// target element, which will be replaced with the ScreenView
 			// itself, has to be added to the parent view.
-			var dummyElement = '<div id="' + screenView.id() + '"/>';
+			var dummyElement = '<div id="' + screenViewId + '"/>';
 			this.getUI('screens').prepend(dummyElement);
 
-			this.addRegion('screen-' + id, { el: document.getElementById(screenView.id()), replaceElement: true });
+			this.addRegion('screen-' + id, { el: document.getElementById(screenViewId), replaceElement: true });
 			this.showChildView('screen-' + id, screenView);
 
 			this._callViewScreens.add(id);
@@ -340,14 +380,8 @@
 		},
 
 		setScreenVisible: function(id, visible) {
-			if (this._screenViews[id] && visible) {
-				this._screenViews[id].$el.removeClass("hidden");
-			} else if (this._screenViews[id] && !visible) {
-				this._screenViews[id].$el.addClass("hidden");
-			}
-
-			if (this._videoViews[id]) {
-				this._videoViews[id].screenVisible = visible;
+			if (this._sharedData[id]) {
+				this._sharedData[id].screenVisible = visible;
 			}
 		},
 
@@ -371,6 +405,10 @@
 			}
 
 			delete this._screenViews[id];
+
+			if (!this._videoViews[id]) {
+				delete this._sharedData[id];
+			}
 
 			this._exitScreenSharingModeIfThereAreNoScreens();
 		},

@@ -49,20 +49,21 @@
 				return;
 			}
 
-			var oldVideoView = this._callView.getVideoView(this._latestSpeakerId);
-			if (oldVideoView) {
-				oldVideoView.promoted = false;
+			var oldSharedData = this._callView.getSharedData(this._latestSpeakerId);
+			if (oldSharedData) {
+				oldSharedData.promoted = false;
 			}
 
-			videoView.promoted = true;
+			var sharedData = this._callView.getSharedData(id);
+			sharedData.promoted = true;
 
 			this._latestSpeakerId = id;
 		},
 		unpromoteLatestSpeaker: function() {
 			if (this._latestSpeakerId) {
-				var oldVideoView = this._callView.getVideoView(this._latestSpeakerId);
-				if (oldVideoView) {
-					oldVideoView.promoted = false;
+				var oldSharedData = this._callView.getSharedData(this._latestSpeakerId);
+				if (oldSharedData) {
+					oldSharedData.promoted = false;
 				}
 
 				this._unpromotedSpeakerId = this._latestSpeakerId;
