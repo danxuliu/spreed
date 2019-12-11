@@ -423,9 +423,9 @@
 				this._chatViewInMainView = true;
 			}
 
-			this._callView.$el.hide();
+			this._callViewWrapper.$el.hide();
 
-			this.stopListening(this._callView, 'hasDarkBackground', this._toggleHasDarkBackground);
+			this._callViewWrapper._vm.$off('hasDarkBackground', this._toggleHasDarkBackground);
 			this._toggleHasDarkBackground(false);
 
 			$('#emptycontent').show();
@@ -440,10 +440,10 @@
 				this._chatViewInMainView = false;
 			}
 
-			this._callView.$el.show();
+			this._callViewWrapper.$el.show();
 
-			this.listenTo(this._callView, 'hasDarkBackground', this._toggleHasDarkBackground);
-			this._toggleHasDarkBackground(this._callView.hasDarkBackground());
+			this._callViewWrapper._vm.$on('hasDarkBackground', this._toggleHasDarkBackground);
+			this._toggleHasDarkBackground(this._callViewWrapper._vm.$refs.callView.hasDarkBackground());
 
 			$('#emptycontent').hide();
 		},
@@ -451,9 +451,9 @@
 			this._chatView.$el.detach();
 			this._chatViewInMainView = false;
 
-			this._callView.$el.hide();
+			this._callViewWrapper.$el.hide();
 
-			this.stopListening(this._callView, 'hasDarkBackground', this._toggleHasDarkBackground);
+			this._callViewWrapper._vm.$off('hasDarkBackground', this._toggleHasDarkBackground);
 			this._toggleHasDarkBackground(false);
 
 			$('#emptycontent').show();
@@ -666,16 +666,23 @@
 			this._localMediaModel = new OCA.Talk.Models.LocalMediaModel();
 			this._callParticipantCollection = new OCA.Talk.Models.CallParticipantCollection();
 
-			this._callView = new OCA.Talk.Views.CallView({
-				localCallParticipantModel: this._localCallParticipantModel,
-				localMediaModel: this._localMediaModel,
-				collection: this._callParticipantCollection,
+			this._callViewWrapper = new OCA.Talk.Views.VueWrapper({
+				vm: new OCA.Talk.Views.Vue.CallView({
+					propsData: {
+						localCallParticipantModel: this._localCallParticipantModel,
+						localMediaModel: this._localMediaModel,
+						callParticipantCollection: this._callParticipantCollection,
+					}
+				})
 			});
-			// Ensure that the call view is not visible in the initial page.
-			this._callView.$el.hide();
-			this._callView.$el.insertBefore(this._emptyContentView.$el);
+			this._callViewWrapper.render();
+			this._callViewWrapper.$el = Backbone.$(this._callViewWrapper.el);
 
-			this._localMediaControls = this._callView._localVideoWrapper._vm.$refs.localVideo.$refs.localMediaControls;
+			// Ensure that the call view is not visible in the initial page.
+			this._callViewWrapper.$el.hide();
+			this._callViewWrapper.$el.insertBefore(this._emptyContentView.$el);
+
+			this._localMediaControls = this._callViewWrapper._vm.$refs.callView.$refs.localVideo.$refs.localMediaControls;
 
 			this._speakingWhileMutedWarner = new OCA.Talk.Views.SpeakingWhileMutedWarner(this._localMediaModel, this._localMediaControls);
 

@@ -63,7 +63,7 @@
 
 			$('#content').append('<div id="talk-sidebar" class="disappear"></div>');
 			$('#talk-sidebar').append(this._$callContainerWrapper);
-			$('#call-container-wrapper').append(OCA.SpreedMe.app._callView.$el);
+			$('#call-container-wrapper').append(OCA.SpreedMe.app._callViewWrapper.$el);
 			$('#call-container-wrapper').append('<div id="emptycontent"><div id="emptycontent-icon" class="icon-loading"></div><h2></h2><p class="emptycontent-additional"></p></div>');
 
 			OCA.SpreedMe.app._emptyContentView = new OCA.SpreedMe.Views.EmptyContentView({

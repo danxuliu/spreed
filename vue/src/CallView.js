@@ -20,7 +20,7 @@
  */
 
 import Vue from 'vue'
-import Video from './components/Call/Video'
+import CallView from './components/Call/CallView'
 
 (function(OCA) {
 
@@ -31,34 +31,34 @@ import Video from './components/Call/Video'
 	OCA.Talk.Views = Object.assign({}, OCA.Talk.Views)
 	OCA.Talk.Views.Vue = Object.assign({}, OCA.Talk.Views.Vue)
 
-	OCA.Talk.Views.Vue.Video = Vue.extend({
+	OCA.Talk.Views.Vue.CallView = Vue.extend({
 		components: {
-			Video
+			CallView
 		},
 		props: {
-			placeholderForPromoted: {
-				type: Boolean,
-				default: false
-			},
-			model: {
+			localMediaModel: {
 				type: Object,
 				required: true
 			},
-			sharedData: {
+			localCallParticipantModel: {
+				type: Object,
+				required: true
+			},
+			callParticipantCollection: {
 				type: Object,
 				required: true
 			}
 		},
 		render: function(createElement) {
-			return createElement('Video', {
-				ref: 'video',
+			return createElement('CallView', {
+				ref: 'callView',
 				props: {
-					placeholderForPromoted: this.placeholderForPromoted,
-					model: this.model,
-					sharedData: this.sharedData
+					localMediaModel: this.localMediaModel,
+					localCallParticipantModel: this.localCallParticipantModel,
+					callParticipantCollection: this.callParticipantCollection
 				},
 				on: {
-					'switchScreenToId': id => { this.$emit('switchScreenToId', id) }
+					'hasDarkBackground': darkBackground => { this.$emit('hasDarkBackground', darkBackground) }
 				}
 			})
 		}

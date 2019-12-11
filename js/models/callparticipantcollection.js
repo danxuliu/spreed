@@ -37,6 +37,18 @@
 			throw 'Method not supported by CallParticipantCollection: ' + method;
 		},
 
+		initialize: function() {
+			this.callParticipantModels = [];
+
+			this.on('add', function(callParticipantModel) {
+				this.callParticipantModels.push(callParticipantModel);
+			});
+			this.on('remove', function(callParticipantModel) {
+				var index = this.callParticipantModels.indexOf(callParticipantModel);
+				this.callParticipantModels.splice(index, 1);
+			});
+		},
+
 	});
 
 	OCA.Talk.Models.CallParticipantCollection = CallParticipantCollection;

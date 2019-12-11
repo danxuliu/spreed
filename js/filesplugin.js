@@ -147,7 +147,7 @@
 		render: function() {
 			// Detach the CallView before emptying its ancestor to prevent
 			// internal listeners in LocalMediaControls from becoming unusable.
-			OCA.SpreedMe.app._callView.$el.detach();
+			OCA.SpreedMe.app._callViewWrapper.$el.detach();
 
 			this.$el.empty();
 			this._$callContainerWrapper = null;
@@ -159,7 +159,7 @@
 			this._$callContainerWrapper = $('<div id="call-container-wrapper" class="hidden"></div>');
 
 			this.$el.append(this._$callContainerWrapper);
-			$('#call-container-wrapper').append(OCA.SpreedMe.app._callView.$el);
+			$('#call-container-wrapper').append(OCA.SpreedMe.app._callViewWrapper.$el);
 			$('#call-container-wrapper').append('<div id="emptycontent"><div id="emptycontent-icon" class="icon-loading"></div><h2></h2><p class="emptycontent-additional"></p></div>');
 
 			if (this._emptyContentView) {
@@ -201,8 +201,8 @@
 
 			// The icon to close the sidebar overlaps the video, so use its
 			// white version with a shadow instead of the black one.
-			this.listenTo(OCA.SpreedMe.app._callView, 'hasDarkBackground', this._toggleIconCloseForceIconWhiteInCall);
-			this._toggleIconCloseForceIconWhiteInCall(OCA.SpreedMe.app._callView.hasDarkBackground());
+			OCA.SpreedMe.app._callViewWrapper._vm.$on('hasDarkBackground', this._toggleIconCloseForceIconWhiteInCall);
+			this._toggleIconCloseForceIconWhiteInCall(OCA.SpreedMe.app._callViewWrapper._vm.$refs.callView.hasDarkBackground());
 		},
 
 		_hideCallUi: function() {
@@ -216,7 +216,7 @@
 			});
 
 			// Restore the icon to close the sidebar.
-			this.stopListening(OCA.SpreedMe.app._callView, 'hasDarkBackground', this._toggleIconCloseForceIconWhiteInCall);
+			OCA.SpreedMe.app._callViewWrapper._vm.$off('hasDarkBackground', this._toggleIconCloseForceIconWhiteInCall);
 			this._toggleIconCloseForceIconWhiteInCall(false);
 
 			if (!this._$callContainerWrapper || this._$callContainerWrapper.hasClass('hidden')) {

@@ -82,13 +82,19 @@
 			this._localMediaModel = new OCA.Talk.Models.LocalMediaModel();
 			this._callParticipantCollection = new OCA.Talk.Models.CallParticipantCollection();
 
-			this._callView = new OCA.Talk.Views.CallView({
-				localCallParticipantModel: this._localCallParticipantModel,
-				localMediaModel: this._localMediaModel,
-				collection: this._callParticipantCollection,
+			this._callViewWrapper = new OCA.Talk.Views.VueWrapper({
+				vm: new OCA.Talk.Views.Vue.CallView({
+					propsData: {
+						localCallParticipantModel: this._localCallParticipantModel,
+						localMediaModel: this._localMediaModel,
+						callParticipantCollection: this._callParticipantCollection,
+					}
+				})
 			});
+			this._callViewWrapper.render();
+			this._callViewWrapper.$el = Backbone.$(this._callViewWrapper.el);
 
-			this._localMediaControls = this._callView._localVideoWrapper._vm.$refs.localVideo.$refs.localMediaControls;
+			this._localMediaControls = this._callViewWrapper._vm.$refs.callView.$refs.localVideo.$refs.localMediaControls;
 
 			this._speakingWhileMutedWarner = new OCA.Talk.Views.SpeakingWhileMutedWarner(this._localMediaModel, this._localMediaControls);
 		},
