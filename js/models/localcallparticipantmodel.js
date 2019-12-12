@@ -1,4 +1,4 @@
-/* global Backbone, OCA */
+/* global OCA */
 
 /**
  *
@@ -21,21 +21,25 @@
  *
  */
 
-(function(OCA, Backbone) {
+(function(OCA) {
 	'use strict';
 
 	OCA.Talk = OCA.Talk || {};
 	OCA.Talk.Models = OCA.Talk.Models || {};
 
-	var LocalCallParticipantModel = Backbone.Model.extend({
+	function LocalCallParticipantModel() {
 
-		defaults: {
+		this.attributes = {
 			peerId: null,
 			guestName: null,
-		},
+		}
 
-		sync: function(method) {
-			throw 'Method not supported by LocalCallParticipantModel: ' + method;
+	}
+
+	LocalCallParticipantModel.prototype = {
+
+		set: function(key, value) {
+			this.attributes[key] = value;
 		},
 
 		setWebRtc: function(webRtc) {
@@ -55,8 +59,8 @@
 			this._webRtc.sendDirectlyToAll('status', 'nickChanged', guestName);
 		},
 
-	});
+	}
 
 	OCA.Talk.Models.LocalCallParticipantModel = LocalCallParticipantModel;
 
-})(OCA, Backbone);
+})(OCA);
