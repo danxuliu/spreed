@@ -21,8 +21,11 @@
 
 import Vue from 'vue'
 import CallView from './components/Call/CallView'
+import SimpleWebRTC from './utils/webrtc/simplewebrtc/simplewebrtc'
 
 (function(OCA) {
+
+	window.SimpleWebRTC = SimpleWebRTC
 
 	Vue.prototype.t = t
 	Vue.prototype.n = n

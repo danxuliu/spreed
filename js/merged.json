@@ -5,7 +5,6 @@
   "vendor/jshashes/hashes.min.js",
   "vendor/Caret.js/dist/jquery.caret.min.js",
   "vendor/At.js/dist/js/jquery.atwho.min.js",
-  "simplewebrtc/bundled.js",
   "main.js",
   "models/callparticipantcollection.js",
   "models/callparticipantmodel.js",

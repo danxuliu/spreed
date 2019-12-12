@@ -15,7 +15,7 @@ all: dev-setup build-js-production
 
 dev-setup: clean-dev npm-init
 
-dependabot: dev-setup npm-update build-js-production compile-handlebars-templates bundle-simplewebrtc
+dependabot: dev-setup npm-update build-js-production compile-handlebars-templates
 
 release: appstore create-tag
 
@@ -64,15 +64,6 @@ clean-dev: clean
 compile-handlebars-templates:
 	bash compile-handlebars-templates.sh
 
-bundle-simplewebrtc:
-	# webrtc-adapter uses JavaScript features not supported by browserify,
-	# so the sources need to be transformed using babel to a compatible
-	# version of JavaScript.
-	# Its main module does no longer provide "module.exports", which is
-	# expected by the code using it, so it needs to be added back with a
-	# plugin.
-	npx browserify --standalone SimpleWebRTC --transform [ babelify --global --presets [ @babel/env ] --plugins [ add-module-exports ] ] js/simplewebrtc/simplewebrtc.js > js/simplewebrtc/bundled.js
-
 create-tag:
 	git tag -a v$(version) -m "Tagging the $(version) release."
 	git push origin v$(version)
@@ -98,8 +89,6 @@ appstore:
 	--exclude=.jshintignore \
 	--exclude=js/views/templates \
 	--exclude=js/**.js.map \
-	--include=js/simplewebrtc/bundled.js \
-	--exclude=js/simplewebrtc/*.js \
 	--exclude=js/tests \
 	--exclude=l10n/no-php \
 	--exclude=.l10nignore \

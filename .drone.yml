@@ -2,11 +2,6 @@ kind: pipeline
 name: check-builds
 
 steps:
-  - name: check-simplewebrtc-bundle
-    image: nextcloudci/node:node-7
-    commands:
-      - npm ci
-      - ./check-simplewebrtc-bundle.sh
   - name: check-vuejs-builds
     image: nextcloudci/node:node-7
     commands:

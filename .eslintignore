@@ -2,7 +2,6 @@
 /js/callview.js
 /js/collections.js
 /js/main.js
-/js/simplewebrtc/bundled.js
 /js/tests/*
 /js/vendor/*
 /js/**/templates.js
