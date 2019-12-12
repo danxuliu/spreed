@@ -163,7 +163,7 @@
 
 		setupWebRTC: function() {
 			if (!this._webRtc) {
-				this._webRtc = OCA.SpreedMe.initWebRTC(this.signaling, this._callParticipantCollection);
+				this._webRtc = OCA.Talk.initWebRTC(this.signaling, this._callParticipantCollection);
 				this._webRtc.on('localMediaStarted', function(configuration) {
 					this.startLocalMedia(configuration);
 				}.bind(this));

@@ -29,7 +29,6 @@
   "views/templates.js",
   "views/virtuallist.js",
   "views/vuewrapper.js",
-  "webrtc.js",
   "signaling.js",
   "connection.js",
   "currentuser.js",
