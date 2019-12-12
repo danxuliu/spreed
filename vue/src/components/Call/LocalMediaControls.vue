@@ -79,6 +79,7 @@
 <script>
 import escapeHtml from 'escape-html'
 import Tooltip from 'nextcloud-vue/dist/Directives/Tooltip'
+import SpeakingWhileMutedWarner from '../../utils/webrtc/SpeakingWhileMutedWarner'
 
 export default {
 
@@ -221,6 +222,8 @@ export default {
 
 	mounted() {
 		this.mounted = true
+
+		this.speakingWhileMutedWarner = new SpeakingWhileMutedWarner(this.model, this)
 	},
 
 	methods: {

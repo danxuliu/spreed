@@ -95,8 +95,6 @@
 			this._callViewWrapper.$el = Backbone.$(this._callViewWrapper.el);
 
 			this._localMediaControls = this._callViewWrapper._vm.$refs.callView.$refs.localVideo.$refs.localMediaControls;
-
-			this._speakingWhileMutedWarner = new OCA.Talk.Views.SpeakingWhileMutedWarner(this._localMediaModel, this._localMediaControls);
 		},
 		onStart: function() {
 			this.signaling = OCA.Talk.Signaling.createConnection();
