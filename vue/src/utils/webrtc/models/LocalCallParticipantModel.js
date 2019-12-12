@@ -1,5 +1,3 @@
-/* global OCA */
-
 /**
  *
  * @copyright Copyright (c) 2019, Daniel Calviño Sánchez (danxuliu@gmail.com)
@@ -21,46 +19,36 @@
  *
  */
 
-(function(OCA) {
-	'use strict'
+export default function LocalCallParticipantModel() {
 
-	OCA.Talk = OCA.Talk || {}
-	OCA.Talk.Models = OCA.Talk.Models || {}
-
-	function LocalCallParticipantModel() {
-
-		this.attributes = {
-			peerId: null,
-			guestName: null
-		}
-
+	this.attributes = {
+		peerId: null,
+		guestName: null
 	}
 
-	LocalCallParticipantModel.prototype = {
+}
 
-		set: function(key, value) {
-			this.attributes[key] = value
-		},
+LocalCallParticipantModel.prototype = {
 
-		setWebRtc: function(webRtc) {
-			this._webRtc = webRtc
+	set: function(key, value) {
+		this.attributes[key] = value
+	},
 
-			this.set('peerId', this._webRtc.connection.getSessionid())
-			this.set('guestName', null)
-		},
+	setWebRtc: function(webRtc) {
+		this._webRtc = webRtc
 
-		setGuestName: function(guestName) {
-			if (!this._webRtc) {
-				throw new Error('WebRtc not initialized yet')
-			}
+		this.set('peerId', this._webRtc.connection.getSessionid())
+		this.set('guestName', null)
+	},
 
-			this.set('guestName', guestName)
-
-			this._webRtc.sendDirectlyToAll('status', 'nickChanged', guestName)
+	setGuestName: function(guestName) {
+		if (!this._webRtc) {
+			throw new Error('WebRtc not initialized yet')
 		}
 
+		this.set('guestName', guestName)
+
+		this._webRtc.sendDirectlyToAll('status', 'nickChanged', guestName)
 	}
 
-	OCA.Talk.Models.LocalCallParticipantModel = LocalCallParticipantModel
-
-})(OCA)
+}

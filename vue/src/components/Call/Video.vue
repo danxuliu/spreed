@@ -69,8 +69,7 @@
 import attachMediaStream from 'attachmediastream'
 import Avatar from 'nextcloud-vue/dist/Components/Avatar'
 import Tooltip from 'nextcloud-vue/dist/Directives/Tooltip'
-
-const ConnectionState = OCA.Talk.Models.CallParticipantModel.ConnectionState
+import { ConnectionState } from '../../utils/webrtc/models/CallParticipantModel'
 
 export default {
 
