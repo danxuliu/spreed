@@ -21,7 +21,6 @@
   "views/participantview.js",
   "views/richobjectstringparser.js",
   "views/sidebarview.js",
-  "views/speakingwhilemutedwarner.js",
   "views/tabview.js",
   "views/templates.js",
   "views/virtuallist.js",

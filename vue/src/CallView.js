@@ -22,6 +22,7 @@
 import Vue from 'vue'
 import CallView from './components/Call/CallView'
 import initWebRTC from './utils/webrtc/webrtc'
+import SpeakingWhileMutedWarner from './utils/webrtc/SpeakingWhileMutedWarner'
 import CallParticipantCollection from './utils/webrtc/models/CallParticipantCollection'
 import CallParticipantModel from './utils/webrtc/models/CallParticipantModel'
 import LocalCallParticipantModel from './utils/webrtc/models/LocalCallParticipantModel'
@@ -43,6 +44,8 @@ import LocalMediaModel from './utils/webrtc/models/LocalMediaModel'
 	OCA.Talk.Models.CallParticipantModel = CallParticipantModel
 	OCA.Talk.Models.LocalCallParticipantModel = LocalCallParticipantModel
 	OCA.Talk.Models.LocalMediaModel = LocalMediaModel
+
+	OCA.Talk.Views.SpeakingWhileMutedWarner = SpeakingWhileMutedWarner
 
 	OCA.Talk.Views.Vue.CallView = Vue.extend({
 		components: {

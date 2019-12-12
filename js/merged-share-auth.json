@@ -16,7 +16,6 @@
   "views/editabletextlabel.js",
   "views/emptycontentview.js",
   "views/richobjectstringparser.js",
-  "views/speakingwhilemutedwarner.js",
   "views/templates.js",
   "views/virtuallist.js",
   "views/vuewrapper.js",
