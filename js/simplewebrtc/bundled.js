@@ -85,7 +85,7 @@ module.exports = function (mode, constraints, cb) {
         }
       });
     } else if (window.cefGetScreenMedia) {
-      //window.cefGetScreenMedia is experimental - may be removed without notice
+      // window.cefGetScreenMedia is experimental - may be removed without notice
       window.cefGetScreenMedia(function (sourceId) {
         if (!sourceId) {
           var error = new Error('cefGetScreenMediaError');
@@ -286,6 +286,9 @@ util.inherits(LocalMedia, WildEmitter);
 /**
  * Clones a MediaStream that will be ended when the original MediaStream is
  * ended.
+ *
+ * @param {MediaStream} stream the stream to clone
+ * @returns {MediaStream} the linked stream
  */
 
 var cloneLinkedStream = function cloneLinkedStream(stream) {
@@ -786,19 +789,19 @@ Peer.prototype.offer = function (options) {
 
       this.send('offer', offer);
     }.bind(this)).catch(function (error) {
-      console.warn("setLocalDescription for offer failed: ", error);
-    }.bind(this));
+      console.warn('setLocalDescription for offer failed: ', error);
+    });
   }.bind(this)).catch(function (error) {
-    console.warn("createOffer failed: ", error);
-  }.bind(this));
+    console.warn('createOffer failed: ', error);
+  });
 };
 
 Peer.prototype.handleOffer = function (offer) {
   this.pc.setRemoteDescription(offer).then(function () {
     this.answer();
   }.bind(this)).catch(function (error) {
-    console.warn("setRemoteDescription for offer failed: ", error);
-  }.bind(this));
+    console.warn('setRemoteDescription for offer failed: ', error);
+  });
 };
 
 Peer.prototype.answer = function () {
@@ -817,17 +820,17 @@ Peer.prototype.answer = function () {
 
       this.send('answer', answer);
     }.bind(this)).catch(function (error) {
-      console.warn("setLocalDescription for answer failed: ", error);
-    }.bind(this));
+      console.warn('setLocalDescription for answer failed: ', error);
+    });
   }.bind(this)).catch(function (error) {
-    console.warn("createAnswer failed: ", error);
-  }.bind(this));
+    console.warn('createAnswer failed: ', error);
+  });
 };
 
 Peer.prototype.handleAnswer = function (answer) {
   this.pc.setRemoteDescription(answer).catch(function (error) {
-    console.warn("setRemoteDescription for answer failed: ", error);
-  }.bind(this));
+    console.warn('setRemoteDescription for answer failed: ', error);
+  });
 };
 
 Peer.prototype.handleMessage = function (message) {
@@ -985,7 +988,7 @@ Peer.prototype.onIceCandidate = function (event) {
       this.send('candidate', expandedCandidate);
     }
   } else {
-    this.logger.log("End of candidates.");
+    this.logger.log('End of candidates.');
   }
 };
 
@@ -1072,7 +1075,7 @@ function SimpleWebRTC(opts) {
   var options = opts || {};
   var config = this.config = {
     socketio: {
-      /* 'force new connection':true*/
+      /* 'force new connection':true */
     },
     connection: null,
     debug: false,
@@ -1134,7 +1137,7 @@ function SimpleWebRTC(opts) {
   WildEmitter.call(this);
 
   if (this.config.connection === null) {
-    throw 'no connection object given in the configuration';
+    throw new Error('no connection object given in the configuration');
   } else {
     connection = this.connection = this.config.connection;
   }
@@ -1154,7 +1157,7 @@ function SimpleWebRTC(opts) {
           if (p.sid === message.sid) {
             peer = p;
           }
-        }); //if (!peer) peer = peers[0]; // fallback for old protocol versions
+        }); // if (!peer) peer = peers[0]; // fallback for old protocol versions
       }
 
       if (!peer) {
@@ -1232,11 +1235,11 @@ function SimpleWebRTC(opts) {
     self.emit('turnservers', args);
   });
   this.webrtc.on('iceFailed', function ()
-  /*peer*/
+  /* peer */
   {// local ice failure
   });
   this.webrtc.on('connectivityError', function ()
-  /*peer*/
+  /* peer */
   {// remote ice failure
   }); // sending mute/unmute to all peers
 
@@ -1262,8 +1265,8 @@ function SimpleWebRTC(opts) {
   }); // screensharing events
 
   this.webrtc.on('localScreen', function (stream) {
-    var el = document.createElement('video'),
-        container = self.getRemoteVideoContainer();
+    var el = document.createElement('video');
+    var container = self.getRemoteVideoContainer();
 
     el.oncontextmenu = function () {
       return false;
@@ -1281,7 +1284,7 @@ function SimpleWebRTC(opts) {
     // this is done by the application code in "webrtc.js".
   });
   this.webrtc.on('localScreenStopped', function ()
-  /*stream*/
+  /* stream */
   {
     self.stopScreenShare();
     /*
@@ -1462,8 +1465,6 @@ SimpleWebRTC.prototype.getLocalVideoContainer = function () {
 
     el.appendChild(video);
     return video;
-  } else {
-    return;
   }
 };
 
