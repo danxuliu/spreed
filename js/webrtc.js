@@ -17,6 +17,12 @@ var spreedPeerConnectionTable = [];
 	var delayedConnectionToPeer = [];
 	var callParticipantCollection = null;
 
+	function arrayDiff(a, b) {
+		return a.filter(function(i) {
+			return b.indexOf(i) < 0;
+		});
+	}
+
 	function createScreensharingPeer(signaling, sessionId) {
 		var currentSessionId = signaling.getSessionid();
 		var useMcu = signaling.hasFeature("mcu");
@@ -228,7 +234,7 @@ var spreedPeerConnectionTable = [];
 			}
 		});
 
-		previousUsersInRoom = previousUsersInRoom.diff(disconnectedSessionIds);
+		previousUsersInRoom = arrayDiff(previousUsersInRoom, disconnectedSessionIds);
 	}
 
 	function usersInCallChanged(signaling, users) {
@@ -263,8 +269,8 @@ var spreedPeerConnectionTable = [];
 			return;
 		}
 
-		var newSessionIds = currentUsersInRoom.diff(previousUsersInRoom);
-		var disconnectedSessionIds = previousUsersInRoom.diff(currentUsersInRoom);
+		var newSessionIds = arrayDiff(currentUsersInRoom, previousUsersInRoom);
+		var disconnectedSessionIds = arrayDiff(previousUsersInRoom, currentUsersInRoom);
 		var newUsers = [];
 		newSessionIds.forEach(function(sessionId) {
 			newUsers.push(userMapping[sessionId]);
@@ -275,12 +281,6 @@ var spreedPeerConnectionTable = [];
 	}
 
 	function initWebRTC(signaling, _callParticipantCollection) {
-		Array.prototype.diff = function(a) {
-			return this.filter(function(i) {
-				return a.indexOf(i) < 0;
-			});
-		};
-
 		callParticipantCollection = _callParticipantCollection;
 
 		signaling.on('usersLeft', function(users) {
