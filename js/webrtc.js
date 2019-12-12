@@ -13,7 +13,7 @@ var spreedPeerConnectionTable = [];
 	var usersInCallMapping = {};
 	var ownPeer = null;
 	var ownScreenPeer = null;
-	var selfInCall = 0;  // OCA.SpreedMe.app.FLAG_DISCONNECTED, not available yet.
+	var selfInCall = PARTICIPANT.CALL_FLAG.DISCONNECTED
 	var delayedConnectionToPeer = [];
 	var callParticipantCollection = null;
 
@@ -109,8 +109,8 @@ var spreedPeerConnectionTable = [];
 		if (flags.hasOwnProperty('inCall')) {
 			flags = flags.inCall;
 		}
-		flags = flags || OCA.SpreedMe.app.FLAG_DISCONNECTED;
-		var REQUIRED_FLAGS = OCA.SpreedMe.app.FLAG_WITH_AUDIO | OCA.SpreedMe.app.FLAG_WITH_VIDEO;
+		flags = flags || PARTICIPANT.CALL_FLAG.DISCONNECTED;
+		var REQUIRED_FLAGS = PARTICIPANT.CALL_FLAG.WITH_AUDIO | PARTICIPANT.CALL_FLAG.WITH_VIDEO;
 		return (flags & REQUIRED_FLAGS) !== 0;
 	}
 
@@ -237,7 +237,7 @@ var spreedPeerConnectionTable = [];
 		var currentSessionId = signaling.getSessionid();
 		var currentUsersInRoom = [];
 		var userMapping = {};
-		selfInCall = OCA.SpreedMe.app.FLAG_DISCONNECTED;
+		selfInCall = PARTICIPANT.CALL_FLAG.DISCONNECTED;
 		var sessionId;
 		for (sessionId in users) {
 			if (!users.hasOwnProperty(sessionId)) {
@@ -699,7 +699,7 @@ var spreedPeerConnectionTable = [];
 			signaling.setSendVideoIfAvailable(true);
 
 			var flags = signaling.getCurrentCallFlags();
-			flags |= OCA.SpreedMe.app.FLAG_WITH_VIDEO;
+			flags |= PARTICIPANT.CALL_FLAG.WITH_VIDEO;
 
 			forceReconnect(signaling, flags);
 		});

@@ -22,6 +22,7 @@
 import Vue from 'vue'
 import CallView from './components/Call/CallView'
 import SimpleWebRTC from './utils/webrtc/simplewebrtc/simplewebrtc'
+import { PARTICIPANT } from './constants.js'
 import CallParticipantCollection from './utils/webrtc/models/CallParticipantCollection'
 import CallParticipantModel from './utils/webrtc/models/CallParticipantModel'
 import LocalCallParticipantModel from './utils/webrtc/models/LocalCallParticipantModel'
@@ -30,6 +31,7 @@ import LocalMediaModel from './utils/webrtc/models/LocalMediaModel'
 (function(OCA) {
 
 	window.SimpleWebRTC = SimpleWebRTC
+	window.PARTICIPANT = PARTICIPANT
 
 	Vue.prototype.t = t
 	Vue.prototype.n = n
