@@ -22,16 +22,16 @@
  */
 
 (function(OCA) {
-	'use strict';
+	'use strict'
 
-	OCA.Talk = OCA.Talk || {};
-	OCA.Talk.Models = OCA.Talk.Models || {};
+	OCA.Talk = OCA.Talk || {}
+	OCA.Talk.Models = OCA.Talk.Models || {}
 
 	function LocalCallParticipantModel() {
 
 		this.attributes = {
 			peerId: null,
-			guestName: null,
+			guestName: null
 		}
 
 	}
@@ -39,28 +39,28 @@
 	LocalCallParticipantModel.prototype = {
 
 		set: function(key, value) {
-			this.attributes[key] = value;
+			this.attributes[key] = value
 		},
 
 		setWebRtc: function(webRtc) {
-			this._webRtc = webRtc;
+			this._webRtc = webRtc
 
-			this.set('peerId', this._webRtc.connection.getSessionid());
-			this.set('guestName', null);
+			this.set('peerId', this._webRtc.connection.getSessionid())
+			this.set('guestName', null)
 		},
 
 		setGuestName: function(guestName) {
 			if (!this._webRtc) {
-				throw 'WebRtc not initialized yet';
+				throw new Error('WebRtc not initialized yet')
 			}
 
-			this.set('guestName', guestName);
+			this.set('guestName', guestName)
 
-			this._webRtc.sendDirectlyToAll('status', 'nickChanged', guestName);
-		},
+			this._webRtc.sendDirectlyToAll('status', 'nickChanged', guestName)
+		}
 
 	}
 
-	OCA.Talk.Models.LocalCallParticipantModel = LocalCallParticipantModel;
+	OCA.Talk.Models.LocalCallParticipantModel = LocalCallParticipantModel
 
-})(OCA);
+})(OCA)

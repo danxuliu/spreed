@@ -22,14 +22,14 @@
  */
 
 (function(OCA) {
-	'use strict';
+	'use strict'
 
-	OCA.Talk = OCA.Talk || {};
-	OCA.Talk.Models = OCA.Talk.Models || {};
+	OCA.Talk = OCA.Talk || {}
+	OCA.Talk.Models = OCA.Talk.Models || {}
 
 	function CallParticipantCollection() {
 
-		this.callParticipantModels = [];
+		this.callParticipantModels = []
 
 	}
 
@@ -37,28 +37,28 @@
 
 		add: function(options) {
 			var callParticipantModel = new OCA.Talk.Models.CallParticipantModel(options)
-			this.callParticipantModels.push(callParticipantModel);
+			this.callParticipantModels.push(callParticipantModel)
 
-			return callParticipantModel;
+			return callParticipantModel
 		},
 
 		get: function(peerId) {
 			return this.callParticipantModels.find(function(callParticipantModel) {
-				return callParticipantModel.attributes.peerId === peerId;
-			});
+				return callParticipantModel.attributes.peerId === peerId
+			})
 		},
 
 		remove: function(peerId) {
 			var index = this.callParticipantModels.findIndex(function(callParticipantModel) {
-				return callParticipantModel.attributes.peerId === peerId;
-			});
+				return callParticipantModel.attributes.peerId === peerId
+			})
 			if (index !== -1) {
-				this.callParticipantModels.splice(index, 1);
+				this.callParticipantModels.splice(index, 1)
 			}
 		}
 
 	}
 
-	OCA.Talk.Models.CallParticipantCollection = CallParticipantCollection;
+	OCA.Talk.Models.CallParticipantCollection = CallParticipantCollection
 
-})(OCA);
+})(OCA)

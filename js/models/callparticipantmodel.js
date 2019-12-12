@@ -22,10 +22,10 @@
  */
 
 (function(OCA) {
-	'use strict';
+	'use strict'
 
-	OCA.Talk = OCA.Talk || {};
-	OCA.Talk.Models = OCA.Talk.Models || {};
+	OCA.Talk = OCA.Talk || {}
+	OCA.Talk.Models = OCA.Talk.Models || {}
 
 	var ConnectionState = {
 		NEW: 'new',
@@ -36,8 +36,8 @@
 		DISCONNECTED_LONG: 'disconnected-long', // Talk specific
 		FAILED: 'failed',
 		FAILED_NO_RESTART: 'failed-no-restart', // Talk specific
-		CLOSED: 'closed',
-	};
+		CLOSED: 'closed'
+	}
 
 	function CallParticipantModel(options) {
 
@@ -52,140 +52,140 @@
 			audioAvailable: undefined,
 			speaking: undefined,
 			videoAvailable: undefined,
-			screen: null,
+			screen: null
 		}
 
-		this.set('peerId', options.peerId);
+		this.set('peerId', options.peerId)
 
-		this._webRtc = options.webRtc;
+		this._webRtc = options.webRtc
 
-		this._handlePeerStreamAddedBound = this._handlePeerStreamAdded.bind(this);
-		this._handlePeerStreamRemovedBound = this._handlePeerStreamRemoved.bind(this);
-		this._handleNickBound = this._handleNick.bind(this);
-		this._handleMuteBound = this._handleMute.bind(this);
-		this._handleUnmuteBound = this._handleUnmute.bind(this);
-		this._handleExtendedIceConnectionStateChangeBound = this._handleExtendedIceConnectionStateChange.bind(this);
-		this._handleChannelMessageBound = this._handleChannelMessage.bind(this);
+		this._handlePeerStreamAddedBound = this._handlePeerStreamAdded.bind(this)
+		this._handlePeerStreamRemovedBound = this._handlePeerStreamRemoved.bind(this)
+		this._handleNickBound = this._handleNick.bind(this)
+		this._handleMuteBound = this._handleMute.bind(this)
+		this._handleUnmuteBound = this._handleUnmute.bind(this)
+		this._handleExtendedIceConnectionStateChangeBound = this._handleExtendedIceConnectionStateChange.bind(this)
+		this._handleChannelMessageBound = this._handleChannelMessage.bind(this)
 
-		this._webRtc.on('peerStreamAdded', this._handlePeerStreamAddedBound);
-		this._webRtc.on('peerStreamRemoved', this._handlePeerStreamRemovedBound);
-		this._webRtc.on('nick', this._handleNickBound);
-		this._webRtc.on('mute', this._handleMuteBound);
-		this._webRtc.on('unmute', this._handleUnmuteBound);
-		this._webRtc.on('channelMessage', this._handleChannelMessageBound);
+		this._webRtc.on('peerStreamAdded', this._handlePeerStreamAddedBound)
+		this._webRtc.on('peerStreamRemoved', this._handlePeerStreamRemovedBound)
+		this._webRtc.on('nick', this._handleNickBound)
+		this._webRtc.on('mute', this._handleMuteBound)
+		this._webRtc.on('unmute', this._handleUnmuteBound)
+		this._webRtc.on('channelMessage', this._handleChannelMessageBound)
 
 	}
 
 	CallParticipantModel.prototype = {
 
 		get: function(key) {
-			return this.attributes[key];
+			return this.attributes[key]
 		},
 
 		set: function(key, value) {
-			this.attributes[key] = value;
+			this.attributes[key] = value
 		},
 
 		_handlePeerStreamAdded: function(peer) {
 			if (this._peer === peer) {
-				this.set('stream', this._peer.stream || null);
+				this.set('stream', this._peer.stream || null)
 
 				// "peer.nick" is set only for users and when the MCU is not used.
 				if (this._peer.nick !== undefined) {
-					this.set('name', this._peer.nick);
+					this.set('name', this._peer.nick)
 				}
 			} else if (this._screenPeer === peer) {
-				this.set('screen', this._screenPeer.stream || null);
+				this.set('screen', this._screenPeer.stream || null)
 			}
 		},
 
 		_handlePeerStreamRemoved: function(peer) {
 			if (this._peer === peer) {
-				this.set('stream', null);
-				this.set('audioAvailable', undefined);
-				this.set('speaking', undefined);
-				this.set('videoAvailable', undefined);
+				this.set('stream', null)
+				this.set('audioAvailable', undefined)
+				this.set('speaking', undefined)
+				this.set('videoAvailable', undefined)
 			} else if (this._screenPeer === peer) {
-				this.set('screen', null);
+				this.set('screen', null)
 			}
 		},
 
 		_handleNick: function(data) {
 			if (!this._peer || this._peer.id !== data.id) {
-				return;
+				return
 			}
 
-			this.set('userId', data.userid || null);
-			this.set('name', data.name || null);
+			this.set('userId', data.userid || null)
+			this.set('name', data.name || null)
 		},
 
 		_handleMute: function(data) {
 			if (!this._peer || this._peer.id !== data.id) {
-				return;
+				return
 			}
 
 			if (data.name === 'video') {
-				this.set('videoAvailable', false);
+				this.set('videoAvailable', false)
 			} else {
-				this.set('audioAvailable', false);
-				this.set('speaking', false);
+				this.set('audioAvailable', false)
+				this.set('speaking', false)
 			}
 		},
 
 		_handleUnmute: function(data) {
 			if (!this._peer || this._peer.id !== data.id) {
-				return;
+				return
 			}
 
 			if (data.name === 'video') {
-				this.set('videoAvailable', true);
+				this.set('videoAvailable', true)
 			} else {
-				this.set('audioAvailable', true);
+				this.set('audioAvailable', true)
 			}
 		},
 
 		_handleChannelMessage: function(peer, label, data) {
 			if (!this._peer || this._peer.id !== peer.id) {
-				return;
+				return
 			}
 
 			if (label !== 'status') {
-				return;
+				return
 			}
 
 			if (data.type === 'speaking') {
-				this.set('speaking', true);
+				this.set('speaking', true)
 			} else if (data.type === 'stoppedSpeaking') {
-				this.set('speaking', false);
+				this.set('speaking', false)
 			}
 		},
 
 		setPeer: function(peer) {
 			if (peer && this.get('peerId') !== peer.id) {
-				console.warn('Mismatch between stored peer ID and ID of given peer: ', this.get('peerId'), peer.id);
+				console.warn('Mismatch between stored peer ID and ID of given peer: ', this.get('peerId'), peer.id)
 			}
 
 			if (this._peer) {
-				this._peer.off('extendedIceConnectionStateChange', this._handleExtendedIceConnectionStateChangeBound);
+				this._peer.off('extendedIceConnectionStateChange', this._handleExtendedIceConnectionStateChangeBound)
 			}
 
-			this._peer = peer;
+			this._peer = peer
 
 			// Special case when the participant has no streams.
 			if (!this._peer) {
-				this.set('connectionState', ConnectionState.COMPLETED);
-				this.set('audioAvailable', false);
-				this.set('speaking', false);
-				this.set('videoAvailable', false);
+				this.set('connectionState', ConnectionState.COMPLETED)
+				this.set('audioAvailable', false)
+				this.set('speaking', false)
+				this.set('videoAvailable', false)
 
-				return;
+				return
 			}
 
 			// Reset state that depends on the Peer object.
-			this._handleExtendedIceConnectionStateChange(this._peer.pc.iceConnectionState);
-			this._handlePeerStreamAdded(this._peer);
+			this._handleExtendedIceConnectionStateChange(this._peer.pc.iceConnectionState)
+			this._handlePeerStreamAdded(this._peer)
 
-			this._peer.on('extendedIceConnectionStateChange', this._handleExtendedIceConnectionStateChangeBound);
+			this._peer.on('extendedIceConnectionStateChange', this._handleExtendedIceConnectionStateChangeBound)
 		},
 
 		_handleExtendedIceConnectionStateChange: function(extendedIceConnectionState) {
@@ -194,69 +194,69 @@
 			// camera.
 			var setNameForUserFromPeerNick = function() {
 				if (this._peer.nick !== undefined) {
-					this.set('name', this._peer.nick);
+					this.set('name', this._peer.nick)
 				}
-			}.bind(this);
+			}.bind(this)
 
 			switch (extendedIceConnectionState) {
-				case 'new':
-					this.set('connectionState', ConnectionState.NEW);
-					this.set('audioAvailable', undefined);
-					this.set('speaking', undefined);
-					this.set('videoAvailable', undefined);
-					break;
-				case 'checking':
-					this.set('connectionState', ConnectionState.CHECKING);
-					this.set('audioAvailable', undefined);
-					this.set('speaking', undefined);
-					this.set('videoAvailable', undefined);
-					break;
-				case 'connected':
-					this.set('connectionState', ConnectionState.CONNECTED);
-					setNameForUserFromPeerNick();
-					break;
-				case 'completed':
-					this.set('connectionState', ConnectionState.COMPLETED);
-					setNameForUserFromPeerNick();
-					break;
-				case 'disconnected':
-					this.set('connectionState', ConnectionState.DISCONNECTED);
-					break;
-				case 'disconnected-long':
-					this.set('connectionState', ConnectionState.DISCONNECTED_LONG);
-					break;
-				case 'failed':
-					this.set('connectionState', ConnectionState.FAILED);
-					break;
-				case 'failed-no-restart':
-					this.set('connectionState', ConnectionState.FAILED_NO_RESTART);
-					break;
-				case 'closed':
-					this.set('connectionState', ConnectionState.CLOSED);
-					break;
-				default:
-					console.error('Unexpected (extended) ICE connection state: ', extendedIceConnectionState);
+			case 'new':
+				this.set('connectionState', ConnectionState.NEW)
+				this.set('audioAvailable', undefined)
+				this.set('speaking', undefined)
+				this.set('videoAvailable', undefined)
+				break
+			case 'checking':
+				this.set('connectionState', ConnectionState.CHECKING)
+				this.set('audioAvailable', undefined)
+				this.set('speaking', undefined)
+				this.set('videoAvailable', undefined)
+				break
+			case 'connected':
+				this.set('connectionState', ConnectionState.CONNECTED)
+				setNameForUserFromPeerNick()
+				break
+			case 'completed':
+				this.set('connectionState', ConnectionState.COMPLETED)
+				setNameForUserFromPeerNick()
+				break
+			case 'disconnected':
+				this.set('connectionState', ConnectionState.DISCONNECTED)
+				break
+			case 'disconnected-long':
+				this.set('connectionState', ConnectionState.DISCONNECTED_LONG)
+				break
+			case 'failed':
+				this.set('connectionState', ConnectionState.FAILED)
+				break
+			case 'failed-no-restart':
+				this.set('connectionState', ConnectionState.FAILED_NO_RESTART)
+				break
+			case 'closed':
+				this.set('connectionState', ConnectionState.CLOSED)
+				break
+			default:
+				console.error('Unexpected (extended) ICE connection state: ', extendedIceConnectionState)
 			}
 		},
 
 		setScreenPeer: function(screenPeer) {
 			if (this.get('peerId') !== screenPeer.id) {
-				console.warn('Mismatch between stored peer ID and ID of given screen peer: ', this.get('peerId'), screenPeer.id);
+				console.warn('Mismatch between stored peer ID and ID of given screen peer: ', this.get('peerId'), screenPeer.id)
 			}
 
-			this._screenPeer = screenPeer;
+			this._screenPeer = screenPeer
 
 			// Reset state that depends on the screen Peer object.
-			this._handlePeerStreamAdded(this._screenPeer);
+			this._handlePeerStreamAdded(this._screenPeer)
 		},
 
 		setUserId: function(userId) {
-			this.set('userId', userId);
-		},
+			this.set('userId', userId)
+		}
 
 	}
 
-	OCA.Talk.Models.CallParticipantModel = CallParticipantModel;
-	OCA.Talk.Models.CallParticipantModel.ConnectionState = ConnectionState;
+	OCA.Talk.Models.CallParticipantModel = CallParticipantModel
+	OCA.Talk.Models.CallParticipantModel.ConnectionState = ConnectionState
 
-})(OCA);
+})(OCA)

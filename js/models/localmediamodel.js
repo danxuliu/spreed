@@ -22,10 +22,10 @@
  */
 
 (function(OCA) {
-	'use strict';
+	'use strict'
 
-	OCA.Talk = OCA.Talk || {};
-	OCA.Talk.Models = OCA.Talk.Models || {};
+	OCA.Talk = OCA.Talk || {}
+	OCA.Talk.Models = OCA.Talk.Models || {}
 
 	function LocalMediaModel() {
 
@@ -39,112 +39,112 @@
 			volumeThreshold: -100,
 			videoAvailable: false,
 			videoEnabled: false,
-			localScreen: null,
+			localScreen: null
 		}
 
-		this._handlers = [];
+		this._handlers = []
 
-		this._handleLocalStreamBound = this._handleLocalStream.bind(this);
-		this._handleLocalStreamRequestFailedBound = this._handleLocalStreamRequestFailed.bind(this);
-		this._handleLocalStreamStoppedBound = this._handleLocalStreamStopped.bind(this);
-		this._handleAudioOnBound = this._handleAudioOn.bind(this);
-		this._handleAudioOffBound = this._handleAudioOff.bind(this);
-		this._handleVolumeChangeBound = this._handleVolumeChange.bind(this);
-		this._handleSpeakingBound = this._handleSpeaking.bind(this);
-		this._handleStoppedSpeakingBound = this._handleStoppedSpeaking.bind(this);
-		this._handleSpeakingWhileMutedBound = this._handleSpeakingWhileMuted.bind(this);
-		this._handleStoppedSpeakingWhileMutedBound = this._handleStoppedSpeakingWhileMuted.bind(this);
-		this._handleVideoOnBound = this._handleVideoOn.bind(this);
-		this._handleVideoOffBound = this._handleVideoOff.bind(this);
-		this._handleLocalScreenBound = this._handleLocalScreen.bind(this);
-		this._handleLocalScreenStoppedBound = this._handleLocalScreenStopped.bind(this);
+		this._handleLocalStreamBound = this._handleLocalStream.bind(this)
+		this._handleLocalStreamRequestFailedBound = this._handleLocalStreamRequestFailed.bind(this)
+		this._handleLocalStreamStoppedBound = this._handleLocalStreamStopped.bind(this)
+		this._handleAudioOnBound = this._handleAudioOn.bind(this)
+		this._handleAudioOffBound = this._handleAudioOff.bind(this)
+		this._handleVolumeChangeBound = this._handleVolumeChange.bind(this)
+		this._handleSpeakingBound = this._handleSpeaking.bind(this)
+		this._handleStoppedSpeakingBound = this._handleStoppedSpeaking.bind(this)
+		this._handleSpeakingWhileMutedBound = this._handleSpeakingWhileMuted.bind(this)
+		this._handleStoppedSpeakingWhileMutedBound = this._handleStoppedSpeakingWhileMuted.bind(this)
+		this._handleVideoOnBound = this._handleVideoOn.bind(this)
+		this._handleVideoOffBound = this._handleVideoOff.bind(this)
+		this._handleLocalScreenBound = this._handleLocalScreen.bind(this)
+		this._handleLocalScreenStoppedBound = this._handleLocalScreenStopped.bind(this)
 
 	}
 
 	LocalMediaModel.prototype = {
 
 		get: function(key) {
-			return this.attributes[key];
+			return this.attributes[key]
 		},
 
 		set: function(key, value) {
-			this.attributes[key] = value;
+			this.attributes[key] = value
 
-			this._trigger('change:' + key, [value]);
+			this._trigger('change:' + key, [value])
 		},
 
 		on: function(event, handler) {
 			if (!this._handlers.hasOwnProperty(event)) {
-				this._handlers[event] = [handler];
+				this._handlers[event] = [handler]
 			} else {
-				this._handlers[event].push(handler);
+				this._handlers[event].push(handler)
 			}
 		},
 
 		_trigger: function(event, args) {
-			var handlers = this._handlers[event];
+			var handlers = this._handlers[event]
 			if (!handlers) {
-				return;
+				return
 			}
 
-			args.unshift(this);
+			args.unshift(this)
 
-			handlers = handlers.slice(0);
+			handlers = handlers.slice(0)
 			for (var i = 0; i < handlers.length; i++) {
-				var handler = handlers[i];
-				handler.apply(handler, args);
+				var handler = handlers[i]
+				handler.apply(handler, args)
 			}
 		},
 
 		getWebRtc: function() {
-			return this._webRtc;
+			return this._webRtc
 		},
 
 		setWebRtc: function(webRtc) {
 			if (this._webRtc && this._webRtc.webrtc) {
-				this._webRtc.webrtc.off('localStream', this._handleLocalStreamBound);
-				this._webRtc.webrtc.off('localStreamRequestFailed', this._handleLocalStreamRequestFailedBound);
-				this._webRtc.webrtc.off('localStreamStopped', this._handleLocalStreamStoppedBound);
-				this._webRtc.webrtc.off('audioOn', this._handleAudioOnBound);
-				this._webRtc.webrtc.off('audioOff', this._handleAudioOffBound);
-				this._webRtc.webrtc.off('volumeChange', this._handleVolumeChangeBound);
-				this._webRtc.webrtc.off('speaking', this._handleSpeakingBound);
-				this._webRtc.webrtc.off('stoppedSpeaking', this._handleStoppedSpeakingBound);
-				this._webRtc.webrtc.off('speakingWhileMuted', this._handleSpeakingWhileMutedBound);
-				this._webRtc.webrtc.off('stoppedSpeakingWhileMuted', this._handleStoppedSpeakingWhileMutedBound);
-				this._webRtc.webrtc.off('videoOn', this._handleVideoOnBound);
-				this._webRtc.webrtc.off('videoOff', this._handleVideoOffBound);
-				this._webRtc.webrtc.off('localScreen', this._handleLocalScreenBound);
-				this._webRtc.webrtc.off('localScreenStopped', this._handleLocalScreenStoppedBound);
+				this._webRtc.webrtc.off('localStream', this._handleLocalStreamBound)
+				this._webRtc.webrtc.off('localStreamRequestFailed', this._handleLocalStreamRequestFailedBound)
+				this._webRtc.webrtc.off('localStreamStopped', this._handleLocalStreamStoppedBound)
+				this._webRtc.webrtc.off('audioOn', this._handleAudioOnBound)
+				this._webRtc.webrtc.off('audioOff', this._handleAudioOffBound)
+				this._webRtc.webrtc.off('volumeChange', this._handleVolumeChangeBound)
+				this._webRtc.webrtc.off('speaking', this._handleSpeakingBound)
+				this._webRtc.webrtc.off('stoppedSpeaking', this._handleStoppedSpeakingBound)
+				this._webRtc.webrtc.off('speakingWhileMuted', this._handleSpeakingWhileMutedBound)
+				this._webRtc.webrtc.off('stoppedSpeakingWhileMuted', this._handleStoppedSpeakingWhileMutedBound)
+				this._webRtc.webrtc.off('videoOn', this._handleVideoOnBound)
+				this._webRtc.webrtc.off('videoOff', this._handleVideoOffBound)
+				this._webRtc.webrtc.off('localScreen', this._handleLocalScreenBound)
+				this._webRtc.webrtc.off('localScreenStopped', this._handleLocalScreenStoppedBound)
 			}
 
-			this._webRtc = webRtc;
+			this._webRtc = webRtc
 
-			this.set('localStream', null);
-			this.set('audioAvailable', false);
-			this.set('audioEnabled', false);
-			this.set('speaking', false);
-			this.set('speakingWhileMuted', false);
-			this.set('currentVolume', -100);
-			this.set('volumeThreshold', -100);
-			this.set('videoAvailable', false);
-			this.set('videoEnabled', false);
-			this.set('localScreen', null);
+			this.set('localStream', null)
+			this.set('audioAvailable', false)
+			this.set('audioEnabled', false)
+			this.set('speaking', false)
+			this.set('speakingWhileMuted', false)
+			this.set('currentVolume', -100)
+			this.set('volumeThreshold', -100)
+			this.set('videoAvailable', false)
+			this.set('videoEnabled', false)
+			this.set('localScreen', null)
 
-			this._webRtc.webrtc.on('localStream', this._handleLocalStreamBound);
-			this._webRtc.webrtc.on('localStreamRequestFailed', this._handleLocalStreamRequestFailedBound);
-			this._webRtc.webrtc.on('localStreamStopped', this._handleLocalStreamStoppedBound);
-			this._webRtc.webrtc.on('audioOn', this._handleAudioOnBound);
-			this._webRtc.webrtc.on('audioOff', this._handleAudioOffBound);
-			this._webRtc.webrtc.on('volumeChange', this._handleVolumeChangeBound);
-			this._webRtc.webrtc.on('speaking', this._handleSpeakingBound);
-			this._webRtc.webrtc.on('stoppedSpeaking', this._handleStoppedSpeakingBound);
-			this._webRtc.webrtc.on('speakingWhileMuted', this._handleSpeakingWhileMutedBound);
-			this._webRtc.webrtc.on('stoppedSpeakingWhileMuted', this._handleStoppedSpeakingWhileMutedBound);
-			this._webRtc.webrtc.on('videoOn', this._handleVideoOnBound);
-			this._webRtc.webrtc.on('videoOff', this._handleVideoOffBound);
-			this._webRtc.webrtc.on('localScreen', this._handleLocalScreenBound);
-			this._webRtc.webrtc.on('localScreenStopped', this._handleLocalScreenStoppedBound);
+			this._webRtc.webrtc.on('localStream', this._handleLocalStreamBound)
+			this._webRtc.webrtc.on('localStreamRequestFailed', this._handleLocalStreamRequestFailedBound)
+			this._webRtc.webrtc.on('localStreamStopped', this._handleLocalStreamStoppedBound)
+			this._webRtc.webrtc.on('audioOn', this._handleAudioOnBound)
+			this._webRtc.webrtc.on('audioOff', this._handleAudioOffBound)
+			this._webRtc.webrtc.on('volumeChange', this._handleVolumeChangeBound)
+			this._webRtc.webrtc.on('speaking', this._handleSpeakingBound)
+			this._webRtc.webrtc.on('stoppedSpeaking', this._handleStoppedSpeakingBound)
+			this._webRtc.webrtc.on('speakingWhileMuted', this._handleSpeakingWhileMutedBound)
+			this._webRtc.webrtc.on('stoppedSpeakingWhileMuted', this._handleStoppedSpeakingWhileMutedBound)
+			this._webRtc.webrtc.on('videoOn', this._handleVideoOnBound)
+			this._webRtc.webrtc.on('videoOff', this._handleVideoOffBound)
+			this._webRtc.webrtc.on('localScreen', this._handleLocalScreenBound)
+			this._webRtc.webrtc.on('localScreenStopped', this._handleLocalScreenStoppedBound)
 		},
 
 		_handleLocalStream: function(configuration, localStream) {
@@ -158,204 +158,204 @@
 			// Peer. As it is not well supported and there is also no need to
 			// use several local streams for now it is assumed that only one
 			// local stream will be active at the same time.
-			this.set('localStream', localStream);
+			this.set('localStream', localStream)
 
-			this._setInitialMediaState(configuration);
+			this._setInitialMediaState(configuration)
 		},
 
 		_handleLocalStreamRequestFailed: function() {
-			this.set('localStream', null);
+			this.set('localStream', null)
 
-			this._setInitialMediaState({audio: false, video: false});
+			this._setInitialMediaState({ audio: false, video: false })
 		},
 
 		_setInitialMediaState: function(configuration) {
 			if (configuration.audio !== false) {
-				this.set('audioAvailable', true);
+				this.set('audioAvailable', true)
 				if (this.get('audioEnabled')) {
-					this.enableAudio();
+					this.enableAudio()
 				} else {
-					this.disableAudio();
+					this.disableAudio()
 				}
 			} else {
-				this.set('audioEnabled', false);
-				this.set('audioAvailable', false);
+				this.set('audioEnabled', false)
+				this.set('audioAvailable', false)
 			}
 
 			if (configuration.video !== false) {
-				this.set('videoAvailable', true);
+				this.set('videoAvailable', true)
 				if (this.get('videoEnabled')) {
-					this.enableVideo();
+					this.enableVideo()
 				} else {
-					this.disableVideo();
+					this.disableVideo()
 				}
 			} else {
-				this.set('videoEnabled', false);
-				this.set('videoAvailable', false);
+				this.set('videoEnabled', false)
+				this.set('videoAvailable', false)
 			}
 		},
 
 		_handleLocalStreamStopped: function(localStream) {
 			if (this.get('localStream') !== localStream) {
-				return;
+				return
 			}
 
-			this.set('localStream', null);
+			this.set('localStream', null)
 		},
 
 		_handleAudioOn: function() {
 			if (!this.get('audioAvailable')) {
-				return;
+				return
 			}
 
-			this.set('audioEnabled', true);
+			this.set('audioEnabled', true)
 		},
 
 		_handleAudioOff: function() {
 			if (!this.get('audioAvailable')) {
-				return;
+				return
 			}
 
-			this.set('audioEnabled', false);
+			this.set('audioEnabled', false)
 		},
 
 		_handleVolumeChange: function(currentVolume, volumeThreshold) {
 			if (!this.get('audioAvailable')) {
-				return;
+				return
 			}
 
-			this.set('currentVolume', currentVolume);
-			this.set('volumeThreshold', volumeThreshold);
+			this.set('currentVolume', currentVolume)
+			this.set('volumeThreshold', volumeThreshold)
 		},
 
 		_handleSpeaking: function() {
 			if (!this.get('audioAvailable')) {
-				return;
+				return
 			}
 
-			this.set('speaking', true);
+			this.set('speaking', true)
 		},
 
 		_handleStoppedSpeaking: function() {
 			if (!this.get('audioAvailable')) {
-				return;
+				return
 			}
 
-			this.set('speaking', false);
+			this.set('speaking', false)
 		},
 
 		_handleSpeakingWhileMuted: function() {
 			if (!this.get('audioAvailable')) {
-				return;
+				return
 			}
 
-			this.set('speakingWhileMuted', true);
+			this.set('speakingWhileMuted', true)
 		},
 
 		_handleStoppedSpeakingWhileMuted: function() {
 			if (!this.get('audioAvailable')) {
-				return;
+				return
 			}
 
-			this.set('speakingWhileMuted', false);
+			this.set('speakingWhileMuted', false)
 		},
 
 		_handleVideoOn: function() {
 			if (!this.get('videoAvailable')) {
-				return;
+				return
 			}
 
-			this.set('videoEnabled', true);
+			this.set('videoEnabled', true)
 		},
 
 		_handleVideoOff: function() {
 			if (!this.get('videoAvailable')) {
-				return;
+				return
 			}
 
-			this.set('videoEnabled', false);
+			this.set('videoEnabled', false)
 		},
 
 		_handleLocalScreen: function(screen) {
-			this.set('localScreen', screen);
+			this.set('localScreen', screen)
 		},
 
 		_handleLocalScreenStopped: function() {
-			this.set('localScreen', null);
+			this.set('localScreen', null)
 		},
 
 		enableAudio: function() {
 			if (!this._webRtc) {
-				throw 'WebRtc not initialized yet';
+				throw new Error('WebRtc not initialized yet')
 			}
 
 			if (!this.get('audioAvailable')) {
-				return;
+				return
 			}
 
-			this._webRtc.unmute();
+			this._webRtc.unmute()
 		},
 
 		disableAudio: function() {
 			if (!this._webRtc) {
-				throw 'WebRtc not initialized yet';
+				throw new Error('WebRtc not initialized yet')
 			}
 
 			if (!this.get('audioAvailable')) {
 				// Ensure that the audio will be disabled once available.
-				this.set('audioEnabled', false);
+				this.set('audioEnabled', false)
 
-				return;
+				return
 			}
 
-			this._webRtc.mute();
+			this._webRtc.mute()
 		},
 
 		enableVideo: function() {
 			if (!this._webRtc) {
-				throw 'WebRtc not initialized yet';
+				throw new Error('WebRtc not initialized yet')
 			}
 
 			if (!this.get('videoAvailable')) {
-				return;
+				return
 			}
 
-			this._webRtc.resumeVideo();
+			this._webRtc.resumeVideo()
 		},
 
 		disableVideo: function() {
 			if (!this._webRtc) {
-				throw 'WebRtc not initialized yet';
+				throw new Error('WebRtc not initialized yet')
 			}
 
 			if (!this.get('videoAvailable')) {
 				// Ensure that the video will be disabled once available.
-				this.set('videoEnabled', false);
+				this.set('videoEnabled', false)
 
-				return;
+				return
 			}
 
-			this._webRtc.pauseVideo();
+			this._webRtc.pauseVideo()
 		},
 
 		shareScreen: function(mode, callback) {
 			if (!this._webRtc) {
-				throw 'WebRtc not initialized yet';
+				throw new Error('WebRtc not initialized yet')
 			}
 
-			this._webRtc.shareScreen(mode, callback);
+			this._webRtc.shareScreen(mode, callback)
 		},
 
 		stopSharingScreen: function() {
 			if (!this._webRtc) {
-				throw 'WebRtc not initialized yet';
+				throw new Error('WebRtc not initialized yet')
 			}
 
-			this._webRtc.stopScreenShare();
-		},
+			this._webRtc.stopScreenShare()
+		}
 
 	}
 
-	OCA.Talk.Models.LocalMediaModel = LocalMediaModel;
+	OCA.Talk.Models.LocalMediaModel = LocalMediaModel
 
-})(OCA);
+})(OCA)
