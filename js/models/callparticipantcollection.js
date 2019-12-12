@@ -1,4 +1,4 @@
-/* global Backbone, OCA */
+/* global OCA */
 
 /**
  *
@@ -21,36 +21,44 @@
  *
  */
 
-(function(OCA, Backbone) {
+(function(OCA) {
 	'use strict';
 
 	OCA.Talk = OCA.Talk || {};
 	OCA.Talk.Models = OCA.Talk.Models || {};
 
-	var CallParticipantCollection = Backbone.Collection.extend({
+	function CallParticipantCollection() {
 
-		model: function(attrs, options) {
-			return new OCA.Talk.Models.CallParticipantModel(attrs, options);
+		this.callParticipantModels = [];
+
+	}
+
+	CallParticipantCollection.prototype = {
+
+		add: function(options) {
+			var callParticipantModel = new OCA.Talk.Models.CallParticipantModel(options)
+			this.callParticipantModels.push(callParticipantModel);
+
+			return callParticipantModel;
 		},
 
-		sync: function(method) {
-			throw 'Method not supported by CallParticipantCollection: ' + method;
-		},
-
-		initialize: function() {
-			this.callParticipantModels = [];
-
-			this.on('add', function(callParticipantModel) {
-				this.callParticipantModels.push(callParticipantModel);
+		get: function(peerId) {
+			return this.callParticipantModels.find(function(callParticipantModel) {
+				return callParticipantModel.attributes.peerId === peerId;
 			});
-			this.on('remove', function(callParticipantModel) {
-				var index = this.callParticipantModels.indexOf(callParticipantModel);
+		},
+
+		remove: function(peerId) {
+			var index = this.callParticipantModels.findIndex(function(callParticipantModel) {
+				return callParticipantModel.attributes.peerId === peerId;
+			});
+			if (index !== -1) {
 				this.callParticipantModels.splice(index, 1);
-			});
-		},
+			}
+		}
 
-	});
+	}
 
 	OCA.Talk.Models.CallParticipantCollection = CallParticipantCollection;
 
-})(OCA, Backbone);
+})(OCA);

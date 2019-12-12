@@ -1,4 +1,4 @@
-/* global Backbone, OCA */
+/* global OCA */
 
 /**
  *
@@ -21,7 +21,7 @@
  *
  */
 
-(function(OCA, Backbone) {
+(function(OCA) {
 	'use strict';
 
 	OCA.Talk = OCA.Talk || {};
@@ -39,9 +39,9 @@
 		CLOSED: 'closed',
 	};
 
-	var CallParticipantModel = Backbone.Model.extend({
+	function CallParticipantModel(options) {
 
-		defaults: {
+		this.attributes = {
 			peerId: null,
 			// "undefined" is used for values not known yet; "null" or "false"
 			// are used for known but negative/empty values.
@@ -53,31 +53,37 @@
 			speaking: undefined,
 			videoAvailable: undefined,
 			screen: null,
+		}
+
+		this.set('peerId', options.peerId);
+
+		this._webRtc = options.webRtc;
+
+		this._handlePeerStreamAddedBound = this._handlePeerStreamAdded.bind(this);
+		this._handlePeerStreamRemovedBound = this._handlePeerStreamRemoved.bind(this);
+		this._handleNickBound = this._handleNick.bind(this);
+		this._handleMuteBound = this._handleMute.bind(this);
+		this._handleUnmuteBound = this._handleUnmute.bind(this);
+		this._handleExtendedIceConnectionStateChangeBound = this._handleExtendedIceConnectionStateChange.bind(this);
+		this._handleChannelMessageBound = this._handleChannelMessage.bind(this);
+
+		this._webRtc.on('peerStreamAdded', this._handlePeerStreamAddedBound);
+		this._webRtc.on('peerStreamRemoved', this._handlePeerStreamRemovedBound);
+		this._webRtc.on('nick', this._handleNickBound);
+		this._webRtc.on('mute', this._handleMuteBound);
+		this._webRtc.on('unmute', this._handleUnmuteBound);
+		this._webRtc.on('channelMessage', this._handleChannelMessageBound);
+
+	}
+
+	CallParticipantModel.prototype = {
+
+		get: function(key) {
+			return this.attributes[key];
 		},
 
-		sync: function(method) {
-			throw 'Method not supported by CallParticipantModel: ' + method;
-		},
-
-		initialize: function(options) {
-			this.set('id', options.peerId);
-
-			this._webRtc = options.webRtc;
-
-			this._handlePeerStreamAddedBound = this._handlePeerStreamAdded.bind(this);
-			this._handlePeerStreamRemovedBound = this._handlePeerStreamRemoved.bind(this);
-			this._handleNickBound = this._handleNick.bind(this);
-			this._handleMuteBound = this._handleMute.bind(this);
-			this._handleUnmuteBound = this._handleUnmute.bind(this);
-			this._handleExtendedIceConnectionStateChangeBound = this._handleExtendedIceConnectionStateChange.bind(this);
-			this._handleChannelMessageBound = this._handleChannelMessage.bind(this);
-
-			this._webRtc.on('peerStreamAdded', this._handlePeerStreamAddedBound);
-			this._webRtc.on('peerStreamRemoved', this._handlePeerStreamRemovedBound);
-			this._webRtc.on('nick', this._handleNickBound);
-			this._webRtc.on('mute', this._handleMuteBound);
-			this._webRtc.on('unmute', this._handleUnmuteBound);
-			this._webRtc.on('channelMessage', this._handleChannelMessageBound);
+		set: function(key, value) {
+			this.attributes[key] = value;
 		},
 
 		_handlePeerStreamAdded: function(peer) {
@@ -248,9 +254,9 @@
 			this.set('userId', userId);
 		},
 
-	});
+	}
 
 	OCA.Talk.Models.CallParticipantModel = CallParticipantModel;
 	OCA.Talk.Models.CallParticipantModel.ConnectionState = ConnectionState;
 
-})(OCA, Backbone);
+})(OCA);
