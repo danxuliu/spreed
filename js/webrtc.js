@@ -1,35 +1,37 @@
 // TODO(fancycode): Should load through AMD if possible.
-/* global SimpleWebRTC, OC, OCA: false */
+/* global SimpleWebRTC, OC, OCA, $: false */
 
-var webrtc;
+/* eslint-disable no-console */
+
+var webrtc
 var spreedPeerConnectionTable = [];
 
-(function(OCA, OC) {
-	'use strict';
+(function(OCA, OC, $) {
+	'use strict'
 
-	OCA.SpreedMe = OCA.SpreedMe || {};
+	OCA.SpreedMe = OCA.SpreedMe || {}
 
-	var previousUsersInRoom = [];
-	var usersInCallMapping = {};
-	var ownPeer = null;
-	var ownScreenPeer = null;
+	var previousUsersInRoom = []
+	var usersInCallMapping = {}
+	var ownPeer = null
+	var ownScreenPeer = null
 	var selfInCall = PARTICIPANT.CALL_FLAG.DISCONNECTED
-	var delayedConnectionToPeer = [];
-	var callParticipantCollection = null;
+	var delayedConnectionToPeer = []
+	var callParticipantCollection = null
 
 	function arrayDiff(a, b) {
 		return a.filter(function(i) {
-			return b.indexOf(i) < 0;
-		});
+			return b.indexOf(i) < 0
+		})
 	}
 
 	function createScreensharingPeer(signaling, sessionId) {
-		var currentSessionId = signaling.getSessionid();
-		var useMcu = signaling.hasFeature("mcu");
+		var currentSessionId = signaling.getSessionid()
+		var useMcu = signaling.hasFeature('mcu')
 
 		if (useMcu && !webrtc.webrtc.getPeers(currentSessionId, 'screen').length) {
 			if (ownScreenPeer) {
-				ownScreenPeer.end();
+				ownScreenPeer.end()
 			}
 
 			// Create own publishing stream.
@@ -42,14 +44,14 @@ var spreedPeerConnectionTable = [];
 					offerToReceiveAudio: 0,
 					offerToReceiveVideo: 0
 				},
-				broadcaster: currentSessionId,
-			});
-			webrtc.emit('createdPeer', ownScreenPeer);
-			ownScreenPeer.start();
+				broadcaster: currentSessionId
+			})
+			webrtc.emit('createdPeer', ownScreenPeer)
+			ownScreenPeer.start()
 		}
 
 		if (sessionId === currentSessionId) {
-			return;
+			return
 		}
 
 		if (useMcu) {
@@ -58,12 +60,12 @@ var spreedPeerConnectionTable = [];
 			// audio/video peers. Not possible right now as there is no way
 			// for clients to know that screensharing is active and an offer
 			// from the MCU should be requested.
-			signaling.sendOffer(sessionId, "screen");
+			signaling.sendOffer(sessionId, 'screen')
 		} else if (!useMcu) {
-			var screenPeers = webrtc.webrtc.getPeers(sessionId, 'screen');
+			var screenPeers = webrtc.webrtc.getPeers(sessionId, 'screen')
 			var screenPeerSharedTo = screenPeers.find(function(screenPeer) {
-				return screenPeer.sharemyscreen === true;
-			});
+				return screenPeer.sharemyscreen === true
+			})
 			if (!screenPeerSharedTo) {
 				var peer = webrtc.webrtc.createPeer({
 					id: sessionId,
@@ -74,128 +76,128 @@ var spreedPeerConnectionTable = [];
 						offerToReceiveAudio: 0,
 						offerToReceiveVideo: 0
 					},
-					broadcaster: currentSessionId,
-				});
-				webrtc.emit('createdPeer', peer);
-				peer.start();
+					broadcaster: currentSessionId
+				})
+				webrtc.emit('createdPeer', peer)
+				peer.start()
 			}
 		}
 	}
 
 	function checkStartPublishOwnPeer(signaling) {
-		'use strict';
-		var currentSessionId = signaling.getSessionid();
+		'use strict'
+		var currentSessionId = signaling.getSessionid()
 		if (!webrtc.webrtc.localStreams.length || webrtc.webrtc.getPeers(currentSessionId, 'video').length) {
 			// No media yet or already publishing.
-			return;
+			return
 		}
 
 		if (ownPeer) {
-			webrtc.removePeers(ownPeer.id);
-			ownPeer.end();
+			webrtc.removePeers(ownPeer.id)
+			ownPeer.end()
 		}
 
 		// Create own publishing stream.
 		ownPeer = webrtc.webrtc.createPeer({
 			id: currentSessionId,
-			type: "video",
+			type: 'video',
 			enableDataChannels: true,
 			receiveMedia: {
 				offerToReceiveAudio: 0,
 				offerToReceiveVideo: 0
 			},
 			sendVideoIfAvailable: signaling.getSendVideoIfAvailable()
-		});
-		webrtc.emit('createdPeer', ownPeer);
-		ownPeer.start();
+		})
+		webrtc.emit('createdPeer', ownPeer)
+		ownPeer.start()
 	}
 
 	function userHasStreams(user) {
-		var flags = user;
+		var flags = user
 		if (flags.hasOwnProperty('inCall')) {
-			flags = flags.inCall;
+			flags = flags.inCall
 		}
-		flags = flags || PARTICIPANT.CALL_FLAG.DISCONNECTED;
-		var REQUIRED_FLAGS = PARTICIPANT.CALL_FLAG.WITH_AUDIO | PARTICIPANT.CALL_FLAG.WITH_VIDEO;
-		return (flags & REQUIRED_FLAGS) !== 0;
+		flags = flags || PARTICIPANT.CALL_FLAG.DISCONNECTED
+		var REQUIRED_FLAGS = PARTICIPANT.CALL_FLAG.WITH_AUDIO | PARTICIPANT.CALL_FLAG.WITH_VIDEO
+		return (flags & REQUIRED_FLAGS) !== 0
 	}
 
 	function usersChanged(signaling, newUsers, disconnectedSessionIds) {
-		'use strict';
-		var currentSessionId = signaling.getSessionid();
+		'use strict'
+		var currentSessionId = signaling.getSessionid()
 
-		var useMcu = signaling.hasFeature("mcu");
+		var useMcu = signaling.hasFeature('mcu')
 		if (useMcu && newUsers.length) {
-			checkStartPublishOwnPeer(signaling);
+			checkStartPublishOwnPeer(signaling)
 		}
 
 		newUsers.forEach(function(user) {
 			if (!user.inCall) {
-				return;
+				return
 			}
 
 			// TODO(fancycode): Adjust property name of internal PHP backend to be all lowercase.
-			var sessionId = user.sessionId || user.sessionid;
+			var sessionId = user.sessionId || user.sessionid
 			if (!sessionId || sessionId === currentSessionId || previousUsersInRoom.indexOf(sessionId) !== -1) {
-				return;
+				return
 			}
 
-			previousUsersInRoom.push(sessionId);
+			previousUsersInRoom.push(sessionId)
 
 			// Use null to differentiate between guest (null) and not known yet
 			// (undefined).
 			// TODO(fancycode): Adjust property name of internal PHP backend to be all lowercase.
-			var userId = user.userId || user.userid || null;
+			var userId = user.userId || user.userid || null
 
-			var callParticipantModel = callParticipantCollection.get(sessionId);
+			var callParticipantModel = callParticipantCollection.get(sessionId)
 			if (!callParticipantModel) {
 				callParticipantModel = callParticipantCollection.add({
 					peerId: sessionId,
-					webRtc: webrtc,
-				});
+					webRtc: webrtc
+				})
 			}
-			callParticipantModel.setUserId(userId);
+			callParticipantModel.setUserId(userId)
 
 			// When the MCU is used and the other participant has no streams or
 			// when no MCU is used and neither the local participant nor the
 			// other one has no streams there will be no Peer for that other
 			// participant, so a null Peer needs to be explicitly set now.
-			if ((signaling.hasFeature('mcu') && user && !userHasStreams(user)) ||
-					(!signaling.hasFeature('mcu') && user && !userHasStreams(user) && !webrtc.webrtc.localStreams.length)) {
-				callParticipantModel.setPeer(null);
+			if ((signaling.hasFeature('mcu') && user && !userHasStreams(user))
+					|| (!signaling.hasFeature('mcu') && user && !userHasStreams(user) && !webrtc.webrtc.localStreams.length)) {
+				callParticipantModel.setPeer(null)
 			}
 
 			var createPeer = function() {
 				var peer = webrtc.webrtc.createPeer({
 					id: sessionId,
-					type: "video",
+					type: 'video',
 					enableDataChannels: true,
 					receiveMedia: {
 						offerToReceiveAudio: 1,
 						offerToReceiveVideo: 1
 					},
 					sendVideoIfAvailable: signaling.getSendVideoIfAvailable()
-				});
-				webrtc.emit('createdPeer', peer);
-				peer.start();
-			};
+				})
+				webrtc.emit('createdPeer', peer)
+				peer.start()
+			}
 
 			if (!webrtc.webrtc.getPeers(sessionId, 'video').length) {
 				if (useMcu) {
 					// TODO(jojo): Already create peer object to avoid duplicate offers.
-					signaling.requestOffer(user, "video");
+					signaling.requestOffer(user, 'video')
 
 					delayedConnectionToPeer[user.sessionId] = setInterval(function() {
-						console.log('No offer received for new peer, request offer again');
+						console.log('No offer received for new peer, request offer again')
 
-						signaling.requestOffer(user, 'video');
-					}, 10000);
+						signaling.requestOffer(user, 'video')
+					}, 10000)
 				} else if (userHasStreams(selfInCall) && (!userHasStreams(user) || sessionId < currentSessionId)) {
 					// To avoid overloading the user joining a room (who previously called
 					// all the other participants), we decide who calls who by comparing
 					// the session ids of the users: "larger" ids call "smaller" ones.
-					console.log("Starting call with", user);
-					createPeer();
+					console.log('Starting call with', user)
+					createPeer()
 				} else if (userHasStreams(selfInCall) && userHasStreams(user) && sessionId > currentSessionId) {
 					// If the remote peer is not aware that it was disconnected
 					// from the current peer the remote peer will not send a new
@@ -209,156 +211,156 @@ var spreedPeerConnectionTable = [];
 						// from an existing peer it must be removed and a new
 						// one must be created from scratch.
 						webrtc.webrtc.getPeers(sessionId, 'video').forEach(function(peer) {
-							peer.end();
-						});
+							peer.end()
+						})
 
-						console.log("No offer nor answer received, sending offer again");
-						createPeer();
-					}, 10000);
+						console.log('No offer nor answer received, sending offer again')
+						createPeer()
+					}, 10000)
 				}
 			}
 
-			//Send shared screen to new participants
+			// Send shared screen to new participants
 			if (webrtc.getLocalScreen()) {
-				createScreensharingPeer(signaling, sessionId);
+				createScreensharingPeer(signaling, sessionId)
 			}
-		});
+		})
 
 		disconnectedSessionIds.forEach(function(sessionId) {
-			console.log('XXX Remove peer', sessionId);
-			webrtc.removePeers(sessionId);
-			callParticipantCollection.remove(sessionId);
+			console.log('XXX Remove peer', sessionId)
+			webrtc.removePeers(sessionId)
+			callParticipantCollection.remove(sessionId)
 			if (delayedConnectionToPeer[sessionId]) {
-				clearInterval(delayedConnectionToPeer[sessionId]);
-				delete delayedConnectionToPeer[sessionId];
+				clearInterval(delayedConnectionToPeer[sessionId])
+				delete delayedConnectionToPeer[sessionId]
 			}
-		});
+		})
 
-		previousUsersInRoom = arrayDiff(previousUsersInRoom, disconnectedSessionIds);
+		previousUsersInRoom = arrayDiff(previousUsersInRoom, disconnectedSessionIds)
 	}
 
 	function usersInCallChanged(signaling, users) {
 		// The passed list are the users that are currently in the room,
 		// i.e. that are in the call and should call each other.
-		var currentSessionId = signaling.getSessionid();
-		var currentUsersInRoom = [];
-		var userMapping = {};
-		selfInCall = PARTICIPANT.CALL_FLAG.DISCONNECTED;
-		var sessionId;
+		var currentSessionId = signaling.getSessionid()
+		var currentUsersInRoom = []
+		var userMapping = {}
+		selfInCall = PARTICIPANT.CALL_FLAG.DISCONNECTED
+		var sessionId
 		for (sessionId in users) {
 			if (!users.hasOwnProperty(sessionId)) {
-				continue;
+				continue
 			}
-			var user = users[sessionId];
+			var user = users[sessionId]
 			if (!user.inCall) {
-				continue;
+				continue
 			}
 
 			if (sessionId === currentSessionId) {
-				selfInCall = user.inCall;
-				continue;
+				selfInCall = user.inCall
+				continue
 			}
 
-			currentUsersInRoom.push(sessionId);
-			userMapping[sessionId] = user;
+			currentUsersInRoom.push(sessionId)
+			userMapping[sessionId] = user
 		}
 
 		if (!selfInCall) {
 			// Own session is no longer in the call, disconnect from all others.
-			usersChanged(signaling, [], previousUsersInRoom);
-			return;
+			usersChanged(signaling, [], previousUsersInRoom)
+			return
 		}
 
-		var newSessionIds = arrayDiff(currentUsersInRoom, previousUsersInRoom);
-		var disconnectedSessionIds = arrayDiff(previousUsersInRoom, currentUsersInRoom);
-		var newUsers = [];
+		var newSessionIds = arrayDiff(currentUsersInRoom, previousUsersInRoom)
+		var disconnectedSessionIds = arrayDiff(previousUsersInRoom, currentUsersInRoom)
+		var newUsers = []
 		newSessionIds.forEach(function(sessionId) {
-			newUsers.push(userMapping[sessionId]);
-		});
+			newUsers.push(userMapping[sessionId])
+		})
 		if (newUsers.length || disconnectedSessionIds.length) {
-			usersChanged(signaling, newUsers, disconnectedSessionIds);
+			usersChanged(signaling, newUsers, disconnectedSessionIds)
 		}
 	}
 
 	function initWebRTC(signaling, _callParticipantCollection) {
-		callParticipantCollection = _callParticipantCollection;
+		callParticipantCollection = _callParticipantCollection
 
 		signaling.on('usersLeft', function(users) {
 			users.forEach(function(user) {
-				delete usersInCallMapping[user];
-			});
-			usersChanged(signaling, [], users);
-		});
+				delete usersInCallMapping[user]
+			})
+			usersChanged(signaling, [], users)
+		})
 		signaling.on('usersChanged', function(users) {
 			users.forEach(function(user) {
-				var sessionId = user.sessionId || user.sessionid;
-				usersInCallMapping[sessionId] = user;
-			});
-			usersInCallChanged(signaling, usersInCallMapping);
-		});
+				var sessionId = user.sessionId || user.sessionid
+				usersInCallMapping[sessionId] = user
+			})
+			usersInCallChanged(signaling, usersInCallMapping)
+		})
 		signaling.on('usersInRoom', function(users) {
-			usersInCallMapping = {};
+			usersInCallMapping = {}
 			users.forEach(function(user) {
-				var sessionId = user.sessionId || user.sessionid;
-				usersInCallMapping[sessionId] = user;
-			});
-			usersInCallChanged(signaling, usersInCallMapping);
-		});
-		signaling.on('leaveCall', function (token, reconnect) {
+				var sessionId = user.sessionId || user.sessionid
+				usersInCallMapping[sessionId] = user
+			})
+			usersInCallChanged(signaling, usersInCallMapping)
+		})
+		signaling.on('leaveCall', function(token, reconnect) {
 			// When the MCU is used and there is a connection error the call is
 			// left and then joined again to perform the reconnection. In those
 			// cases the call should be kept active from the point of view of
 			// WebRTC.
 			if (reconnect) {
-				return;
+				return
 			}
 
-			webrtc.leaveCall();
-		});
+			webrtc.leaveCall()
+		})
 
-		signaling.on('message', function (message) {
+		signaling.on('message', function(message) {
 			if (message.type === 'answer' && message.roomType === 'video' && delayedConnectionToPeer[message.from]) {
-				clearInterval(delayedConnectionToPeer[message.from]);
-				delete delayedConnectionToPeer[message.from];
+				clearInterval(delayedConnectionToPeer[message.from])
+				delete delayedConnectionToPeer[message.from]
 
-				return;
+				return
 			}
 
 			if (message.type !== 'offer') {
-				return;
+				return
 			}
 
-			var peers = webrtc.webrtc.peers;
+			var peers = webrtc.webrtc.peers
 			var stalePeer = peers.find(function(peer) {
 				if (peer.sharemyscreen) {
-					return false;
+					return false
 				}
 
-				return peer.id === message.from && peer.type === message.roomType && peer.sid !== message.sid;
-			});
+				return peer.id === message.from && peer.type === message.roomType && peer.sid !== message.sid
+			})
 
 			if (stalePeer) {
-				stalePeer.end();
+				stalePeer.end()
 			}
 
 			if (message.roomType === 'video' && delayedConnectionToPeer[message.from]) {
-				clearInterval(delayedConnectionToPeer[message.from]);
-				delete delayedConnectionToPeer[message.from];
+				clearInterval(delayedConnectionToPeer[message.from])
+				delete delayedConnectionToPeer[message.from]
 			}
 
 			if (!selfInCall) {
-				console.log('Offer received when not in the call, ignore');
+				console.log('Offer received when not in the call, ignore')
 
-				message.type = 'offer-to-ignore';
+				message.type = 'offer-to-ignore'
 			}
 
 			// MCU screen offers do not include the "broadcaster" property,
 			// which is expected by SimpleWebRTC in screen offers from a remote
 			// peer, so it needs to be explicitly added.
-			if (signaling.hasFeature("mcu") && message.roomType === 'screen') {
-				message.broadcaster = message.from;
+			if (signaling.hasFeature('mcu') && message.roomType === 'screen') {
+				message.broadcaster = message.from
 			}
-		});
+		})
 
 		webrtc = new SimpleWebRTC({
 			remoteVideosEl: '',
@@ -374,11 +376,11 @@ var spreedPeerConnectionTable = [];
 			connection: signaling,
 			enableDataChannels: true,
 			nick: OCA.Talk.getCurrentUser().displayName
-		});
+		})
 		if (signaling.hasFeature('mcu')) {
 			// Force "Plan-B" semantics if the MCU is used, which doesn't support
 			// "Unified Plan" with SimpleWebRTC yet.
-			webrtc.webrtc.config.peerConnectionConfig.sdpSemantics = 'plan-b';
+			webrtc.webrtc.config.peerConnectionConfig.sdpSemantics = 'plan-b'
 		}
 
 		signaling.on('pullMessagesStoppedOnFail', function() {
@@ -388,22 +390,22 @@ var spreedPeerConnectionTable = [];
 			// leave the call (which is likely due to the messages failing to be
 			// received) no event will be triggered and the call will not be
 			// left from WebRTC point of view.
-			webrtc.leaveCall();
-		});
+			webrtc.leaveCall()
+		})
 
-		webrtc.startMedia = function (token) {
-			webrtc.joinCall(token);
-		};
+		webrtc.startMedia = function(token) {
+			webrtc.joinCall(token)
+		}
 
 		var sendDataChannelToAll = function(channel, message, payload) {
 			// If running with MCU, the message must be sent through the
 			// publishing peer and will be distributed by the MCU to subscribers.
 			if (ownPeer && signaling.hasFeature && signaling.hasFeature('mcu')) {
-				ownPeer.sendDirectly(channel, message, payload);
-				return;
+				ownPeer.sendDirectly(channel, message, payload)
+				return
 			}
-			webrtc.sendDirectlyToAll(channel, message, payload);
-		};
+			webrtc.sendDirectlyToAll(channel, message, payload)
+		}
 
 		// The nick name below the avatar is distributed through the DataChannel
 		// of the PeerConnection and only sent once during establishment. For
@@ -417,468 +419,468 @@ var spreedPeerConnectionTable = [];
 		// DataChannel for this.
 		function stopSendingNick(peer) {
 			if (!peer.nickInterval) {
-				return;
+				return
 			}
 
-			clearInterval(peer.nickInterval);
-			peer.nickInterval = null;
-		};
+			clearInterval(peer.nickInterval)
+			peer.nickInterval = null
+		}
 		function startSendingNick(peer) {
-			if (!signaling.hasFeature("mcu")) {
-				return;
+			if (!signaling.hasFeature('mcu')) {
+				return
 			}
 
-			stopSendingNick(peer);
+			stopSendingNick(peer)
 			peer.nickInterval = setInterval(function() {
-				var payload;
-				var user = OCA.Talk.getCurrentUser();
+				var payload
+				var user = OCA.Talk.getCurrentUser()
 				if (!user.uid) {
-					payload = localStorage.getItem("nick");
+					payload = localStorage.getItem('nick')
 				} else {
 					payload = {
-						"name": user.displayName,
-						"userid": user.uid
-					};
+						'name': user.displayName,
+						'userid': user.uid
+					}
 				}
-				peer.sendDirectly('status', "nickChanged", payload);
-			}, 1000);
-		};
+				peer.sendDirectly('status', 'nickChanged', payload)
+			}, 1000)
+		}
 
 		function handleIceConnectionStateConnected(peer) {
 			// Send the current information about the video and microphone
 			// state.
 			if (!webrtc.webrtc.isVideoEnabled()) {
-				webrtc.emit('videoOff');
+				webrtc.emit('videoOff')
 			} else {
-				webrtc.emit('videoOn');
+				webrtc.emit('videoOn')
 			}
 			if (!webrtc.webrtc.isAudioEnabled()) {
-				webrtc.emit('audioOff');
+				webrtc.emit('audioOff')
 			} else {
-				webrtc.emit('audioOn');
+				webrtc.emit('audioOn')
 			}
 			if (!OCA.Talk.getCurrentUser()['uid']) {
-				var currentGuestNick = localStorage.getItem("nick");
-				sendDataChannelToAll('status', 'nickChanged', currentGuestNick);
+				var currentGuestNick = localStorage.getItem('nick')
+				sendDataChannelToAll('status', 'nickChanged', currentGuestNick)
 			}
 
 			// Reset ice restart counter for peer
 			if (spreedPeerConnectionTable[peer.id] > 0) {
-				spreedPeerConnectionTable[peer.id] = 0;
+				spreedPeerConnectionTable[peer.id] = 0
 			}
-		};
+		}
 
 		function handleIceConnectionStateDisconnected(peer) {
 			setTimeout(function() {
 				if (peer.pc.iceConnectionState !== 'disconnected') {
-					return;
+					return
 				}
 
-				peer.emit('extendedIceConnectionStateChange', 'disconnected-long');
+				peer.emit('extendedIceConnectionStateChange', 'disconnected-long')
 
-				if (!signaling.hasFeature("mcu")) {
+				if (!signaling.hasFeature('mcu')) {
 					// Disconnections are not handled with the MCU, only
 					// failures.
 
 					// If the peer is still disconnected after 5 seconds we try
 					// ICE restart.
 					if (spreedPeerConnectionTable[peer.id] < 5) {
-						if (peer.pc.localDescription.type === 'offer' &&
-								peer.pc.signalingState === 'stable') {
-							spreedPeerConnectionTable[peer.id] ++;
-							console.log('ICE restart.', peer);
-							peer.icerestart();
+						if (peer.pc.localDescription.type === 'offer'
+								&& peer.pc.signalingState === 'stable') {
+							spreedPeerConnectionTable[peer.id]++
+							console.log('ICE restart.', peer)
+							peer.icerestart()
 						}
 					}
 				}
-			}, 5000);
-		};
+			}, 5000)
+		}
 
 		function handleIceConnectionStateFailed(peer) {
-			if (!signaling.hasFeature("mcu")) {
+			if (!signaling.hasFeature('mcu')) {
 				if (spreedPeerConnectionTable[peer.id] < 5) {
-					if (peer.pc.localDescription.type === 'offer' &&
-							peer.pc.signalingState === 'stable') {
-						spreedPeerConnectionTable[peer.id] ++;
-						console.log('ICE restart.', peer);
-						peer.icerestart();
+					if (peer.pc.localDescription.type === 'offer'
+							&& peer.pc.signalingState === 'stable') {
+						spreedPeerConnectionTable[peer.id]++
+						console.log('ICE restart.', peer)
+						peer.icerestart()
 					}
 				} else {
-					console.log('ICE failed after 5 tries.', peer);
+					console.log('ICE failed after 5 tries.', peer)
 
-					peer.emit('extendedIceConnectionStateChange', 'failed-no-restart');
+					peer.emit('extendedIceConnectionStateChange', 'failed-no-restart')
 				}
 			} else {
 				// This handles ICE failures of a receiver peer; ICE failures of
 				// the sender peer are handled in the "iceFailed" event.
-				console.log('Request offer again', peer);
+				console.log('Request offer again', peer)
 
-				signaling.requestOffer(peer.id, 'video');
+				signaling.requestOffer(peer.id, 'video')
 
 				delayedConnectionToPeer[peer.id] = setInterval(function() {
-					console.log('No offer received, request offer again', peer);
+					console.log('No offer received, request offer again', peer)
 
-					signaling.requestOffer(peer.id, 'video');
-				}, 10000);
+					signaling.requestOffer(peer.id, 'video')
+				}, 10000)
 			}
-		};
+		}
 
 		function setHandlerForIceConnectionStateChange(peer) {
 			// Initialize ice restart counter for peer
-			spreedPeerConnectionTable[peer.id] = 0;
+			spreedPeerConnectionTable[peer.id] = 0
 
-			peer.pc.addEventListener('iceconnectionstatechange', function () {
-				peer.emit('extendedIceConnectionStateChange', peer.pc.iceConnectionState);
+			peer.pc.addEventListener('iceconnectionstatechange', function() {
+				peer.emit('extendedIceConnectionStateChange', peer.pc.iceConnectionState)
 
 				switch (peer.pc.iceConnectionState) {
-					case 'checking':
-						console.log('Connecting to peer...', peer);
+				case 'checking':
+					console.log('Connecting to peer...', peer)
 
-						break;
-					case 'connected':
-					case 'completed': // on caller side
-						console.log('Connection established.', peer);
+					break
+				case 'connected':
+				case 'completed': // on caller side
+					console.log('Connection established.', peer)
 
-						handleIceConnectionStateConnected(peer);
-						break;
-					case 'disconnected':
-						console.log('Disconnected.', peer);
+					handleIceConnectionStateConnected(peer)
+					break
+				case 'disconnected':
+					console.log('Disconnected.', peer)
 
-						handleIceConnectionStateDisconnected(peer);
-						break;
-					case 'failed':
-						console.log('Connection failed.', peer);
+					handleIceConnectionStateDisconnected(peer)
+					break
+				case 'failed':
+					console.log('Connection failed.', peer)
 
-						handleIceConnectionStateFailed(peer);
-						break;
-					case 'closed':
-						console.log('Connection closed.', peer);
+					handleIceConnectionStateFailed(peer)
+					break
+				case 'closed':
+					console.log('Connection closed.', peer)
 
-						break;
+					break
 				}
-			});
-		};
+			})
+		}
 
-		webrtc.on('createdPeer', function (peer) {
-			console.log('PEER CREATED', peer);
+		webrtc.on('createdPeer', function(peer) {
+			console.log('PEER CREATED', peer)
 
 			if (peer.id !== signaling.getSessionid() && !peer.sharemyscreen) {
 				// In some strange cases a Peer can be added before its
 				// participant is found in the list of participants.
-				var callParticipantModel = callParticipantCollection.get(peer.id);
+				var callParticipantModel = callParticipantCollection.get(peer.id)
 				if (!callParticipantModel) {
 					callParticipantModel = callParticipantCollection.add({
 						peerId: peer.id,
-						webRtc: webrtc,
-					});
+						webRtc: webrtc
+					})
 				}
 
 				if (peer.type === 'video') {
-					callParticipantModel.setPeer(peer);
+					callParticipantModel.setPeer(peer)
 				} else {
-					callParticipantModel.setScreenPeer(peer);
+					callParticipantModel.setScreenPeer(peer)
 				}
 			}
 
 			if (peer.type === 'video') {
 				if (peer.id === signaling.getSessionid()) {
-					console.log("Not adding ICE connection state handler for own peer", peer);
+					console.log('Not adding ICE connection state handler for own peer', peer)
 
-					startSendingNick(peer);
+					startSendingNick(peer)
 				} else {
-					setHandlerForIceConnectionStateChange(peer);
+					setHandlerForIceConnectionStateChange(peer)
 				}
 
 				// Make sure required data channels exist for all peers. This
 				// is required for peers that get created by SimpleWebRTC from
 				// received "Offer" messages. Otherwise the "channelMessage"
 				// will not be called.
-				peer.getDataChannel('status');
+				peer.getDataChannel('status')
 			}
-		});
+		})
 
 		function checkPeerMedia(peer, track, mediaType) {
-			var defer = $.Deferred();
+			var defer = $.Deferred()
 			peer.pc.getStats(track).then(function(stats) {
-				var result = false;
+				var result = false
 				stats.forEach(function(statsReport) {
 					if (result || statsReport.mediaType !== mediaType || !statsReport.hasOwnProperty('bytesReceived')) {
-						return;
+						return
 					}
 
 					if (statsReport.bytesReceived > 0) {
 						webrtc.emit('unmute', {
 							id: peer.id,
 							name: mediaType
-						});
-						result = true;
+						})
+						result = true
 					}
-				});
+				})
 				if (result) {
-					defer.resolve();
+					defer.resolve()
 				} else {
-					defer.reject();
+					defer.reject()
 				}
-			});
-			return defer;
+			})
+			return defer
 		}
 
 		function stopPeerCheckMedia(peer) {
 			if (peer.check_audio_interval) {
-				clearInterval(peer.check_audio_interval);
-				peer.check_audio_interval = null;
+				clearInterval(peer.check_audio_interval)
+				peer.check_audio_interval = null
 			}
 			if (peer.check_video_interval) {
-				clearInterval(peer.check_video_interval);
-				peer.check_video_interval = null;
+				clearInterval(peer.check_video_interval)
+				peer.check_video_interval = null
 			}
-			stopSendingNick(peer);
+			stopSendingNick(peer)
 		}
 
 		function startPeerCheckMedia(peer, stream) {
-			stopPeerCheckMedia(peer);
+			stopPeerCheckMedia(peer)
 			peer.check_video_interval = setInterval(function() {
 				stream.getVideoTracks().forEach(function(video) {
 					checkPeerMedia(peer, video, 'video').then(function() {
-						clearInterval(peer.check_video_interval);
-						peer.check_video_interval = null;
-					});
-				});
-			}, 1000);
+						clearInterval(peer.check_video_interval)
+						peer.check_video_interval = null
+					})
+				})
+			}, 1000)
 			peer.check_audio_interval = setInterval(function() {
 				stream.getAudioTracks().forEach(function(audio) {
 					checkPeerMedia(peer, audio, 'audio').then(function() {
-						clearInterval(peer.check_audio_interval);
-						peer.check_audio_interval = null;
-					});
-				});
-			}, 1000);
+						clearInterval(peer.check_audio_interval)
+						peer.check_audio_interval = null
+					})
+				})
+			}, 1000)
 		}
 
-		webrtc.on('peerStreamAdded', function (peer) {
+		webrtc.on('peerStreamAdded', function(peer) {
 			// With the MCU, a newly subscribed stream might not get the
 			// "audioOn"/"videoOn" messages as they are only sent when
 			// a user starts publishing. Instead wait for initial data
 			// and trigger events locally.
-			if (!signaling.hasFeature("mcu")) {
-				return;
+			if (!signaling.hasFeature('mcu')) {
+				return
 			}
 
-			startPeerCheckMedia(peer, peer.stream);
-		});
+			startPeerCheckMedia(peer, peer.stream)
+		})
 
-		webrtc.on('peerStreamRemoved', function (peer) {
-			stopPeerCheckMedia(peer);
-		});
+		webrtc.on('peerStreamRemoved', function(peer) {
+			stopPeerCheckMedia(peer)
+		})
 
 		var forceReconnect = function(signaling, flags) {
 			if (ownPeer) {
-				webrtc.removePeers(ownPeer.id);
-				ownPeer.end();
-				ownPeer = null;
+				webrtc.removePeers(ownPeer.id)
+				ownPeer.end()
+				ownPeer = null
 			}
 
-			usersChanged(signaling, [], previousUsersInRoom);
-			usersInCallMapping = {};
-			previousUsersInRoom = [];
+			usersChanged(signaling, [], previousUsersInRoom)
+			usersInCallMapping = {}
+			previousUsersInRoom = []
 
 			// Reconnects with a new session id will trigger "usersChanged"
 			// with the users in the room and that will re-establish the
 			// peerconnection streams.
 			// If flags are undefined the current call flags are used.
-			signaling.forceReconnect(true, flags);
-		};
+			signaling.forceReconnect(true, flags)
+		}
 
-		webrtc.webrtc.on('videoOn', function () {
+		webrtc.webrtc.on('videoOn', function() {
 			if (signaling.getSendVideoIfAvailable()) {
-				return;
+				return
 			}
 
 			// When enabling the local video if the video is not being sent a
 			// reconnection is forced to start sending it.
-			signaling.setSendVideoIfAvailable(true);
+			signaling.setSendVideoIfAvailable(true)
 
-			var flags = signaling.getCurrentCallFlags();
-			flags |= PARTICIPANT.CALL_FLAG.WITH_VIDEO;
+			var flags = signaling.getCurrentCallFlags()
+			flags |= PARTICIPANT.CALL_FLAG.WITH_VIDEO
 
-			forceReconnect(signaling, flags);
-		});
+			forceReconnect(signaling, flags)
+		})
 
-		webrtc.webrtc.on('iceFailed', function (/* peer */) {
-			if (!signaling.hasFeature("mcu")) {
+		webrtc.webrtc.on('iceFailed', function(/* peer */) {
+			if (!signaling.hasFeature('mcu')) {
 				// ICE restarts will be handled by "iceConnectionStateChange"
 				// above.
-				return;
+				return
 			}
 
 			// For now assume the connection to the MCU is interrupted on ICE
 			// failures and force a reconnection of all streams.
-			forceReconnect(signaling);
-		});
+			forceReconnect(signaling)
+		})
 
-		var localStreamRequestedTimeout = null;
-		var localStreamRequestedTimeoutNotification = null;
+		var localStreamRequestedTimeout = null
+		var localStreamRequestedTimeoutNotification = null
 
 		var clearLocalStreamRequestedTimeoutAndHideNotification = function() {
-			clearTimeout(localStreamRequestedTimeout);
-			localStreamRequestedTimeout = null;
+			clearTimeout(localStreamRequestedTimeout)
+			localStreamRequestedTimeout = null
 
 			if (localStreamRequestedTimeoutNotification) {
-				OC.Notification.hide(localStreamRequestedTimeoutNotification);
-				localStreamRequestedTimeoutNotification = null;
+				OC.Notification.hide(localStreamRequestedTimeoutNotification)
+				localStreamRequestedTimeoutNotification = null
 			}
-		};
+		}
 
 		// In some cases the browser may enter in a faulty state in which
 		// "getUserMedia" does not return neither successfully nor with an
 		// error. It is not possible to detect this except by guessing when some
 		// time passes and the user has not granted nor rejected the media
 		// permissions.
-		webrtc.on('localStreamRequested', function () {
-			clearLocalStreamRequestedTimeoutAndHideNotification();
+		webrtc.on('localStreamRequested', function() {
+			clearLocalStreamRequestedTimeoutAndHideNotification()
 
 			localStreamRequestedTimeout = setTimeout(function() {
 				// FIXME emit an event and handle it as needed instead of
 				// calling UI code from here.
-				localStreamRequestedTimeoutNotification = OC.Notification.show(t('spreed', 'This is taking longer than expected. Are the media permissions already granted (or rejected)? If yes please restart your browser, as audio and video are failing'), { type: 'error' });
-			}, 10000);
-		});
+				localStreamRequestedTimeoutNotification = OC.Notification.show(t('spreed', 'This is taking longer than expected. Are the media permissions already granted (or rejected)? If yes please restart your browser, as audio and video are failing'), { type: 'error' })
+			}, 10000)
+		})
 
 		signaling.on('leaveRoom', function(token) {
 			if (signaling.currentRoomToken === token) {
-				clearLocalStreamRequestedTimeoutAndHideNotification();
+				clearLocalStreamRequestedTimeoutAndHideNotification()
 			}
-		});
+		})
 
-		webrtc.on('localMediaStarted', function (configuration) {
-			console.log('localMediaStarted');
+		webrtc.on('localMediaStarted', function(configuration) {
+			console.log('localMediaStarted')
 
-			clearLocalStreamRequestedTimeoutAndHideNotification();
+			clearLocalStreamRequestedTimeoutAndHideNotification()
 
-			if (signaling.hasFeature("mcu")) {
-				checkStartPublishOwnPeer(signaling);
+			if (signaling.hasFeature('mcu')) {
+				checkStartPublishOwnPeer(signaling)
 			}
-		});
+		})
 
 		webrtc.on('localMediaError', function(error) {
-			console.log('Access to microphone & camera failed', error);
+			console.log('Access to microphone & camera failed', error)
 
-			clearLocalStreamRequestedTimeoutAndHideNotification();
+			clearLocalStreamRequestedTimeoutAndHideNotification()
 
-			var message;
-			if ((error.name === "NotSupportedError" &&
-					webrtc.capabilities.supportRTCPeerConnection) ||
-				(error.name === "NotAllowedError" &&
-					error.message && error.message.indexOf("Only secure origins") !== -1)) {
-				message = t('spreed', 'Access to microphone & camera is only possible with HTTPS');
-				message += ': ' + t('spreed', 'Please move your setup to HTTPS');
-			} else if (error.name === "NotAllowedError") {
-				message = t('spreed', 'Access to microphone & camera was denied');
-			} else if(!webrtc.capabilities.support) {
-				console.log('WebRTC not supported');
+			var message
+			if ((error.name === 'NotSupportedError'
+					&& webrtc.capabilities.supportRTCPeerConnection)
+				|| (error.name === 'NotAllowedError'
+					&& error.message && error.message.indexOf('Only secure origins') !== -1)) {
+				message = t('spreed', 'Access to microphone & camera is only possible with HTTPS')
+				message += ': ' + t('spreed', 'Please move your setup to HTTPS')
+			} else if (error.name === 'NotAllowedError') {
+				message = t('spreed', 'Access to microphone & camera was denied')
+			} else if (!webrtc.capabilities.support) {
+				console.log('WebRTC not supported')
 
-				message = t('spreed', 'WebRTC is not supported in your browser');
-				message += ': ' + t('spreed', 'Please use a different browser like Firefox or Chrome');
+				message = t('spreed', 'WebRTC is not supported in your browser')
+				message += ': ' + t('spreed', 'Please use a different browser like Firefox or Chrome')
 			} else {
-				message = t('spreed', 'Error while accessing microphone & camera');
-				console.log('Error while accessing microphone & camera: ', error.message || error.name);
+				message = t('spreed', 'Error while accessing microphone & camera')
+				console.log('Error while accessing microphone & camera: ', error.message || error.name)
 			}
 
 			OC.Notification.show(message, {
 				type: 'error',
-				timeout: 15,
-			});
-		});
+				timeout: 15
+			})
+		})
 
 		webrtc.on('channelOpen', function(channel) {
-			console.log('%s datachannel is open', channel.label);
-		});
+			console.log('%s datachannel is open', channel.label)
+		})
 
-		webrtc.on('channelMessage', function (peer, label, data) {
+		webrtc.on('channelMessage', function(peer, label, data) {
 			if (label === 'status') {
-				if(data.type === 'audioOn') {
-					webrtc.emit('unmute', {id: peer.id, name:'audio'});
-				} else if(data.type === 'audioOff') {
-					webrtc.emit('mute', {id: peer.id, name:'audio'});
-				} else if(data.type === 'videoOn') {
-					webrtc.emit('unmute', {id: peer.id, name:'video'});
-				} else if(data.type === 'videoOff') {
-					webrtc.emit('mute', {id: peer.id, name:'video'});
+				if (data.type === 'audioOn') {
+					webrtc.emit('unmute', { id: peer.id, name: 'audio' })
+				} else if (data.type === 'audioOff') {
+					webrtc.emit('mute', { id: peer.id, name: 'audio' })
+				} else if (data.type === 'videoOn') {
+					webrtc.emit('unmute', { id: peer.id, name: 'video' })
+				} else if (data.type === 'videoOff') {
+					webrtc.emit('mute', { id: peer.id, name: 'video' })
 				} else if (data.type === 'nickChanged') {
-					var payload = data.payload || '';
-					if (typeof(payload) === 'string') {
-						webrtc.emit('nick', {id: peer.id, name:data.payload});
+					var payload = data.payload || ''
+					if (typeof (payload) === 'string') {
+						webrtc.emit('nick', { id: peer.id, name: data.payload })
 					} else {
-						webrtc.emit('nick', {id: peer.id, name: payload.name, userid: payload.userid});
+						webrtc.emit('nick', { id: peer.id, name: payload.name, userid: payload.userid })
 					}
 				}
 			} else if (label === 'hark') {
 				// Ignore messages from hark datachannel
 			} else {
-				console.log('Uknown message from %s datachannel', label, data);
+				console.log('Uknown message from %s datachannel', label, data)
 			}
-		});
+		})
 
-		webrtc.on('speaking', function(){
-			sendDataChannelToAll('status', 'speaking');
-		});
+		webrtc.on('speaking', function() {
+			sendDataChannelToAll('status', 'speaking')
+		})
 
-		webrtc.on('stoppedSpeaking', function(){
-			sendDataChannelToAll('status', 'stoppedSpeaking');
-		});
+		webrtc.on('stoppedSpeaking', function() {
+			sendDataChannelToAll('status', 'stoppedSpeaking')
+		})
 
 		// Send the audio on and off events via data channel
 		webrtc.on('audioOn', function() {
-			sendDataChannelToAll('status', 'audioOn');
-		});
+			sendDataChannelToAll('status', 'audioOn')
+		})
 		webrtc.on('audioOff', function() {
-			sendDataChannelToAll('status', 'audioOff');
-		});
+			sendDataChannelToAll('status', 'audioOff')
+		})
 		webrtc.on('videoOn', function() {
-			sendDataChannelToAll('status', 'videoOn');
-		});
+			sendDataChannelToAll('status', 'videoOn')
+		})
 		webrtc.on('videoOff', function() {
-			sendDataChannelToAll('status', 'videoOff');
-		});
+			sendDataChannelToAll('status', 'videoOff')
+		})
 
 		// Local screen added.
 		webrtc.on('localScreenAdded', function(video) {
-			var currentSessionId = signaling.getSessionid();
+			var currentSessionId = signaling.getSessionid()
 			for (var sessionId in usersInCallMapping) {
 				if (!usersInCallMapping.hasOwnProperty(sessionId)) {
-					continue;
+					continue
 				} else if (!usersInCallMapping[sessionId].inCall) {
-					continue;
+					continue
 				} else if (sessionId === currentSessionId) {
 					// Running with MCU, no need to create screensharing
 					// subscriber for client itself.
-					continue;
+					continue
 				}
 
-				createScreensharingPeer(signaling, sessionId);
+				createScreensharingPeer(signaling, sessionId)
 			}
-		});
+		})
 
 		webrtc.on('localScreenStopped', function() {
 			if (!signaling.hasFeature('mcu')) {
 				// Only need to notify clients here if running with MCU.
 				// Otherwise SimpleWebRTC will notify each client on its own.
-				return;
+				return
 			}
 
 			if (ownScreenPeer) {
-				ownScreenPeer = null;
+				ownScreenPeer = null
 
 				signaling.sendRoomMessage({
 					roomType: 'screen',
 					type: 'unshareScreen'
-				});
+				})
 			}
-		});
+		})
 
-		return webrtc;
+		return webrtc
 	}
 
-	OCA.SpreedMe.initWebRTC = initWebRTC;
+	OCA.SpreedMe.initWebRTC = initWebRTC
 
-})(OCA, OC);
+})(OCA, OC, $)
