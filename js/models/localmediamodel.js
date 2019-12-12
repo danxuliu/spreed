@@ -1,4 +1,4 @@
-/* global Backbone, OCA */
+/* global OCA */
 
 /**
  *
@@ -21,15 +21,15 @@
  *
  */
 
-(function(OCA, Backbone) {
+(function(OCA) {
 	'use strict';
 
 	OCA.Talk = OCA.Talk || {};
 	OCA.Talk.Models = OCA.Talk.Models || {};
 
-	var LocalMediaModel = Backbone.Model.extend({
+	function LocalMediaModel() {
 
-		defaults: {
+		this.attributes = {
 			localStream: null,
 			audioAvailable: false,
 			audioEnabled: false,
@@ -40,27 +40,60 @@
 			videoAvailable: false,
 			videoEnabled: false,
 			localScreen: null,
+		}
+
+		this._handlers = [];
+
+		this._handleLocalStreamBound = this._handleLocalStream.bind(this);
+		this._handleLocalStreamRequestFailedBound = this._handleLocalStreamRequestFailed.bind(this);
+		this._handleLocalStreamStoppedBound = this._handleLocalStreamStopped.bind(this);
+		this._handleAudioOnBound = this._handleAudioOn.bind(this);
+		this._handleAudioOffBound = this._handleAudioOff.bind(this);
+		this._handleVolumeChangeBound = this._handleVolumeChange.bind(this);
+		this._handleSpeakingBound = this._handleSpeaking.bind(this);
+		this._handleStoppedSpeakingBound = this._handleStoppedSpeaking.bind(this);
+		this._handleSpeakingWhileMutedBound = this._handleSpeakingWhileMuted.bind(this);
+		this._handleStoppedSpeakingWhileMutedBound = this._handleStoppedSpeakingWhileMuted.bind(this);
+		this._handleVideoOnBound = this._handleVideoOn.bind(this);
+		this._handleVideoOffBound = this._handleVideoOff.bind(this);
+		this._handleLocalScreenBound = this._handleLocalScreen.bind(this);
+		this._handleLocalScreenStoppedBound = this._handleLocalScreenStopped.bind(this);
+
+	}
+
+	LocalMediaModel.prototype = {
+
+		get: function(key) {
+			return this.attributes[key];
 		},
 
-		sync: function(method) {
-			throw 'Method not supported by LocalMediaModel: ' + method;
+		set: function(key, value) {
+			this.attributes[key] = value;
+
+			this._trigger('change:' + key, [value]);
 		},
 
-		initialize: function() {
-			this._handleLocalStreamBound = this._handleLocalStream.bind(this);
-			this._handleLocalStreamRequestFailedBound = this._handleLocalStreamRequestFailed.bind(this);
-			this._handleLocalStreamStoppedBound = this._handleLocalStreamStopped.bind(this);
-			this._handleAudioOnBound = this._handleAudioOn.bind(this);
-			this._handleAudioOffBound = this._handleAudioOff.bind(this);
-			this._handleVolumeChangeBound = this._handleVolumeChange.bind(this);
-			this._handleSpeakingBound = this._handleSpeaking.bind(this);
-			this._handleStoppedSpeakingBound = this._handleStoppedSpeaking.bind(this);
-			this._handleSpeakingWhileMutedBound = this._handleSpeakingWhileMuted.bind(this);
-			this._handleStoppedSpeakingWhileMutedBound = this._handleStoppedSpeakingWhileMuted.bind(this);
-			this._handleVideoOnBound = this._handleVideoOn.bind(this);
-			this._handleVideoOffBound = this._handleVideoOff.bind(this);
-			this._handleLocalScreenBound = this._handleLocalScreen.bind(this);
-			this._handleLocalScreenStoppedBound = this._handleLocalScreenStopped.bind(this);
+		on: function(event, handler) {
+			if (!this._handlers.hasOwnProperty(event)) {
+				this._handlers[event] = [handler];
+			} else {
+				this._handlers[event].push(handler);
+			}
+		},
+
+		_trigger: function(event, args) {
+			var handlers = this._handlers[event];
+			if (!handlers) {
+				return;
+			}
+
+			args.unshift(this);
+
+			handlers = handlers.slice(0);
+			for (var i = 0; i < handlers.length; i++) {
+				var handler = handlers[i];
+				handler.apply(handler, args);
+			}
 		},
 
 		getWebRtc: function() {
@@ -87,9 +120,16 @@
 
 			this._webRtc = webRtc;
 
-			// The webRtc object is assumed to be brand new, so the default
-			// state matches the state of the object.
-			this.set(this.defaults);
+			this.set('localStream', null);
+			this.set('audioAvailable', false);
+			this.set('audioEnabled', false);
+			this.set('speaking', false);
+			this.set('speakingWhileMuted', false);
+			this.set('currentVolume', -100);
+			this.set('volumeThreshold', -100);
+			this.set('videoAvailable', false);
+			this.set('videoEnabled', false);
+			this.set('localScreen', null);
 
 			this._webRtc.webrtc.on('localStream', this._handleLocalStreamBound);
 			this._webRtc.webrtc.on('localStreamRequestFailed', this._handleLocalStreamRequestFailedBound);
@@ -314,8 +354,8 @@
 			this._webRtc.stopScreenShare();
 		},
 
-	});
+	}
 
 	OCA.Talk.Models.LocalMediaModel = LocalMediaModel;
 
-})(OCA, Backbone);
+})(OCA);
