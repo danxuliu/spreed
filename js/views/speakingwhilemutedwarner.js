@@ -23,10 +23,10 @@
 
 (function(OC, OCA) {
 
-	'use strict';
+	'use strict'
 
-	OCA.Talk = OCA.Talk || {};
-	OCA.Talk.Views = OCA.Talk.Views || {};
+	OCA.Talk = OCA.Talk || {}
+	OCA.Talk.Views = OCA.Talk.Views || {}
 
 	/**
 	 * Helper to warn the user if she is talking while muted.
@@ -48,127 +48,132 @@
 	 * is not it is shown using a browser notification, which will be visible
 	 * to the user even if the browser window is not in the foreground (provided
 	 * the user granted the permissions to receive notifications from the site).
+	 *
+	 * @param {LocalMediaModel} model the model that emits "speakingWhileMuted"
+	 *        events
+	 * @param {View} view the view that provides the
+	 *        "setSpeakingWhileMutedNotification" method
 	 */
 	function SpeakingWhileMutedWarner(model, view) {
-		model.on('change:speakingWhileMuted', this._handleSpeakingWhileMutedChange.bind(this));
+		model.on('change:speakingWhileMuted', this._handleSpeakingWhileMutedChange.bind(this))
 
-		this._view = view;
+		this._view = view
 	}
 	SpeakingWhileMutedWarner.prototype = {
 
 		_handleSpeakingWhileMutedChange: function(model, speakingWhileMuted) {
 			if (speakingWhileMuted) {
-				this._handleSpeakingWhileMuted();
+				this._handleSpeakingWhileMuted()
 			} else {
-				this._handleStoppedSpeakingWhileMuted();
+				this._handleStoppedSpeakingWhileMuted()
 			}
 		},
 
 		_handleSpeakingWhileMuted: function() {
 			this._startedSpeakingTimeout = setTimeout(function() {
-				delete this._startedSpeakingTimeout;
+				delete this._startedSpeakingTimeout
 
-				this._showWarning();
-			}.bind(this), 3000);
+				this._showWarning()
+			}.bind(this), 3000)
 		},
 
 		_handleStoppedSpeakingWhileMuted: function() {
 			if (this._startedSpeakingTimeout) {
-				clearTimeout(this._startedSpeakingTimeout);
-				delete this._startedSpeakingTimeout;
+				clearTimeout(this._startedSpeakingTimeout)
+				delete this._startedSpeakingTimeout
 			}
 
-			this._hideWarning();
+			this._hideWarning()
 		},
 
 		_showWarning: function() {
-			var message = t('spreed', 'You seem to be talking while muted, please unmute yourself for others to hear you');
+			var message = t('spreed', 'You seem to be talking while muted, please unmute yourself for others to hear you')
 
 			if (!document.hidden) {
-				this._showNotification(message);
+				this._showNotification(message)
 			} else {
-				this._pendingBrowserNotification = true;
+				this._pendingBrowserNotification = true
 
 				this._showBrowserNotification(message).catch(function() {
 					if (this._pendingBrowserNotification) {
-						this._pendingBrowserNotification = false;
+						this._pendingBrowserNotification = false
 
-						this._showNotification(message);
+						this._showNotification(message)
 					}
-				}.bind(this));
+				}.bind(this))
 			}
 		},
 
 		_showNotification: function(message) {
 			if (this._notification) {
-				return;
+				return
 			}
 
-			this._view.setSpeakingWhileMutedNotification(message);
-			this._notification = true;
+			this._view.setSpeakingWhileMutedNotification(message)
+			this._notification = true
 		},
 
 		_showBrowserNotification: function(message) {
 			return new Promise(function(resolve, reject) {
 				if (this._browserNotification) {
-					resolve();
+					resolve()
 
-					return;
+					return
 				}
 
 				if (!Notification) {
 					// The browser does not support the Notification API.
-					reject();
+					reject()
 
-					return;
+					return
 				}
 
 				if (Notification.permission === 'denied') {
-					reject();
+					reject()
 
-					return;
+					return
 				}
 
 				if (Notification.permission === 'granted') {
-					this._pendingBrowserNotification = false;
-					this._browserNotification = new Notification(message);
-					resolve();
+					this._pendingBrowserNotification = false
+					this._browserNotification = new Notification(message)
+					resolve()
 
-					return;
+					return
 				}
 
 				Notification.requestPermission().then(function(permission) {
 					if (permission === 'granted') {
 						if (this._pendingBrowserNotification) {
-							this._pendingBrowserNotification = false;
-							this._browserNotification = new Notification(message);
+							this._pendingBrowserNotification = false
+							this._browserNotification = new Notification(message)
 						}
-						resolve();
+						resolve()
 					} else {
-						reject();
+						reject()
 					}
-				}.bind(this));
-			}.bind(this));
+				}.bind(this))
+			}.bind(this))
 		},
 
 		_hideWarning: function() {
-			this._pendingBrowserNotification = false;
+			this._pendingBrowserNotification = false
 
 			if (this._notification) {
-				this._view.setSpeakingWhileMutedNotification(null);
+				this._view.setSpeakingWhileMutedNotification(null)
 
-				this._notification = false;
+				this._notification = false
 			}
 
 			if (this._browserNotification) {
-				this._browserNotification.close();
+				this._browserNotification.close()
 
-				this._browserNotification = null;
+				this._browserNotification = null
 			}
-		},
+		}
 
-	};
+	}
 
-	OCA.Talk.Views.SpeakingWhileMutedWarner = SpeakingWhileMutedWarner;
+	OCA.Talk.Views.SpeakingWhileMutedWarner = SpeakingWhileMutedWarner
 
-})(OC, OCA);
+})(OC, OCA)
